@@ -13,11 +13,19 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import com.mashaffer.mymtgchatbot.ui.theme.MyMTGChatbotTheme
 
-class MainActivity : ComponentActivity() {
+class MainActivity : ComponentActivity(),ScryfallCallback {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
 
         setContentView(R.layout.main_activity)
+    }
+
+    override fun onGetCardData(data: String) {
+        TODO("Not yet implemented")
+    }
+
+    override fun onGetCardRuleData(data: String) {
+        TODO("Not yet implemented")
     }
 }

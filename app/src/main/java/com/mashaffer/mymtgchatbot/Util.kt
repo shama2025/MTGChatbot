@@ -7,7 +7,7 @@ import kotlinx.coroutines.launch
 import retrofit2.Callback
 
 class Util: ViewModel() {
-    val scryfallApi =
+    private val scryfallApi =
         ScryfallApiServiceHelper.getInstance().create(ScryfallAPIServiceInterface::class.java)
 
     companion object {
@@ -20,10 +20,13 @@ class Util: ViewModel() {
                 val result = scryfallApi.getCardGenData(cardName)
                 if (result.isSuccessful) {
                     Log.i(TAG, "Successful API Call: ${result.body()}")
+                    callback.onGetCardData(result.body())
+                }else{
+                    Log.i(TAG, "Error getting Card Information: ${result.code()}")
+
                 }
             } catch (e: Exception) {
                 Log.i(TAG, "Failed API Call: ${e.message}")
-
             }
         }
     }
@@ -34,10 +37,28 @@ class Util: ViewModel() {
                 val result = scryfallApi.getCardRuleData(cardID)
                 if (result.isSuccessful) {
                     Log.i(TAG, "Successful API Call: ${result.body()}")
+                    callback.onGetCardRuleData(result.body())
+                }else{
+                    Log.i(TAG, "Error getting Card Information: ${result.code()}")
                 }
             } catch (e: Exception) {
                 Log.i(TAG, "Failed API Call: ${e.message}")
+            }
+        }
+    }
 
+    fun getCardSetData(callback: MainActivity, setID: String){
+        viewModelScope.launch {
+            try {
+                val result = scryfallApi.getCardSetData(setID)
+                if (result.isSuccessful) {
+                    Log.i(TAG, "Successful API Call: ${result.body()}")
+                    callback.onGetCardSetData(result.body())
+                }else{
+                    Log.i(TAG, "Error getting Card Information: ${result.code()}")
+                }
+            } catch (e: Exception) {
+                Log.i(TAG, "Failed API Call: ${e.message}")
             }
         }
     }

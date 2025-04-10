@@ -3,7 +3,7 @@ import com.google.gson.annotations.SerializedName
 data class Rulings(
     @SerializedName("object") val `object`: String,
     @SerializedName("has_more") val hasMore: Boolean,
-    @SerializedName("data") val data: List<Ruling>
+    @SerializedName("data") val moreData: List<Ruling>
 ) {
     data class Ruling(
         @SerializedName("object") val `object`: String,

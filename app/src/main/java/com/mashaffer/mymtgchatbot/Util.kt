@@ -4,7 +4,7 @@ import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.launch
-import retrofit2.Callback
+
 
 class Util: ViewModel() {
     private val scryfallApi =
@@ -14,7 +14,7 @@ class Util: ViewModel() {
         private const val TAG = "Util"
     }
 
-    fun getCardData(callback: MainActivity, cardName: String) {
+    fun getCardData(callback: MainActivity, cardName: String?) {
         viewModelScope.launch {
             try {
                 val result = scryfallApi.getCardGenData(cardName)

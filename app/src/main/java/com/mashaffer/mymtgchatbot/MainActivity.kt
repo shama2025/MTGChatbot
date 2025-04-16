@@ -21,8 +21,11 @@ import androidx.activity.ComponentActivity
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.constraintlayout.widget.ConstraintSet.Motion
 import androidx.core.content.ContextCompat
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowCompat
+import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.WindowInsetsControllerCompat
 
 
 class MainActivity : ComponentActivity(),ScryfallCallback {
@@ -36,6 +39,7 @@ class MainActivity : ComponentActivity(),ScryfallCallback {
 
     companion object{
         private const val TAG = "MainActivity"
+        private val util: Util = Util()
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -48,7 +52,8 @@ class MainActivity : ComponentActivity(),ScryfallCallback {
     }
 
     private fun initMainActivity(context: Context) {
-        val util: Util = Util()
+
+        initImmersiveMode()
 
         val flag = checkSpeechRecognizer(context)
         if(!flag){
@@ -64,6 +69,20 @@ class MainActivity : ComponentActivity(),ScryfallCallback {
         onSpeechListenerSetup()
 
         micBtnSpeechListener()
+    }
+
+    private fun initImmersiveMode() {
+        val windowInsetsController = WindowCompat.getInsetsController(window,window.decorView)
+        windowInsetsController.systemBarsBehavior = WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
+        ViewCompat.setOnApplyWindowInsetsListener(window.decorView) { view, windowInsets ->
+            if (windowInsets.isVisible(WindowInsetsCompat.Type.navigationBars())
+                || windowInsets.isVisible(WindowInsetsCompat.Type.statusBars())) {
+
+                    windowInsetsController.hide(WindowInsetsCompat.Type.systemBars())
+
+            }
+            ViewCompat.onApplyWindowInsets(view, windowInsets)
+        }
     }
 
     private fun micBtnSpeechListener() {
@@ -113,8 +132,9 @@ class MainActivity : ComponentActivity(),ScryfallCallback {
             }
 
             override fun onResults(bundle: Bundle) {
-                val data = bundle.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION)?.get(0)
-                Log.i(TAG, "Data from listener: $data")
+                val data = bundle.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION)?.get(0).toString()
+                Log.i(TAG, "Data from listener:$data")
+                sendData(data)
             }
 
             override fun onPartialResults(bundle: Bundle) {
@@ -124,6 +144,22 @@ class MainActivity : ComponentActivity(),ScryfallCallback {
             }
         })
     }
+
+    private fun sendData(data: String) {
+        val regex = Regex("""card name ([\w\s]+)""")
+        val result = regex.find(data)
+
+        if (result == null) {
+            Log.i(TAG, "Regex match failed — no result")
+            return
+        }
+
+        val cardName = result.groupValues[1].trim()
+
+        Log.i(TAG, "Result after regex filter: $cardName")
+        util.getCardData(MainActivity(), cardName)
+    }
+
 
 
     private fun requestPermissions() {
@@ -150,15 +186,6 @@ class MainActivity : ComponentActivity(),ScryfallCallback {
         }
     }
 
-
-
-
-
-//        val regex = """(Card name (?<cardName>[\w\s]+))""".toRegex()
-//        val result = regex.find("Card name elsha of the infinite")
-//        val cardName = result!!.groups["cardName"]?.value
-
-//        util.getCardData(MainActivity(),cardName)
 //        util.getCardRuleData(MainActivity(),"c0728027-a1ec-4814-87c4-10c3baced0e0")
 //        util.getCardSetData(MainActivity(), "5a645837-b050-449f-ac90-1e7ccbf45031")
 
@@ -196,6 +223,10 @@ class MainActivity : ComponentActivity(),ScryfallCallback {
         cache.put("set", data?.setUri)
         val manaCost = formatManaCost(data?.manaCost)
         val manaColor = formatManaColor(data?.colors)
+        if(data?.power == null && data?.toughness == null && manaCost == " "){
+            val output = "The card ${data?.name} has no power or toughness. " +
+                    "It has no mana cost and is in the color identity of ${manaColor}." + " ${data?.name} has the ability ${data?.oracleText}."
+        }
         val output = "The card ${data?.name} has a base power of ${data?.power} and a base toughness of ${data?.toughness}. " +
                 "It has a mana cost of ${manaCost} and is in the color identity of ${manaColor}." + " ${data?.name} has the ability ${data?.oracleText}."
         Log.i(TAG, output)

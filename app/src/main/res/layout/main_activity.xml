@@ -15,8 +15,8 @@
 
         <EditText
             android:id="@+id/cardInput"
-            android:layout_width="299dp"
-            android:layout_height="69dp"
+            android:layout_width="276dp"
+            android:layout_height="78dp"
             android:background="@color/white"
             android:ems="10"
             android:hint="Card name Rhystic Study"
@@ -30,8 +30,8 @@
 
         <ImageButton
             android:id="@+id/micBtn"
-            android:layout_width="99dp"
-            android:layout_height="70dp"
+            android:layout_width="73dp"
+            android:layout_height="76dp"
             android:contentDescription="Microphone Button"
             android:src="@drawable/baseline_mic_24"
             app:layout_constraintBottom_toBottomOf="parent"
@@ -39,7 +39,7 @@
             app:layout_constraintHorizontal_bias="0.0"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintVertical_bias="0.868" />
+            app:layout_constraintVertical_bias="1.0" />
     </androidx.constraintlayout.widget.ConstraintLayout>
 
     <androidx.recyclerview.widget.RecyclerView

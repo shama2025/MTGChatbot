@@ -3,7 +3,7 @@ package com.mashaffer.mymtgchatbot
 import Card
 import Rulings
 import android.Manifest
-import android.R.layout
+import android.annotation.SuppressLint
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
@@ -11,80 +11,76 @@ import android.os.Bundle
 import android.speech.RecognitionListener
 import android.speech.RecognizerIntent
 import android.speech.SpeechRecognizer
-import android.util.Log
 import android.util.LruCache
+import android.util.Log
 import android.view.MotionEvent
 import android.widget.EditText
 import android.widget.ImageButton
 import android.widget.Toast
 import androidx.activity.ComponentActivity
-import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.content.ContextCompat
-import androidx.core.view.ViewCompat
-import androidx.core.view.WindowCompat
-import androidx.core.view.WindowInsetsCompat
-import androidx.core.view.WindowInsetsControllerCompat
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
+import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.Observer
 
-
-class MainActivity : ComponentActivity(),ScryfallCallback {
+class MainActivity : ComponentActivity() {
     // UI variables
-    private val micBtn: ImageButton by lazy {findViewById(R.id.micBtn)}
-    private val userTextInput: EditText by lazy {findViewById(R.id.cardInput)}
+    private val micBtn: ImageButton by lazy { findViewById(R.id.micBtn) }
+    private val userTextInput: EditText by lazy { findViewById(R.id.cardInput) }
+    private val recyclerView: RecyclerView by lazy { findViewById(R.id.chatRoom) }
 
     // Extra Variables
     private lateinit var requestPermissionLauncher: ActivityResultLauncher<String>
     private var speechRecognizer: SpeechRecognizer? = null
+    private lateinit var util: Util
 
-    companion object{
+    companion object {
         private const val TAG = "MainActivity"
-        private val util: Util = Util()
+        private val cache = LruCache<String, String?>(2)
+
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        enableEdgeToEdge()
-
         setContentView(R.layout.main_activity)
 
+        util = ViewModelProvider(this).get(Util::class.java)
+
         initMainActivity(this)
+
+        // Observe the LiveData for card data
+        util.cardData.observe(this, Observer { data ->
+            data?.let {
+                it.card?.let { it1 -> handleCardData(it1,it.additionalInfo) }
+            }
+        })
+
+        // Observe the LiveData for rule data
+        util.cardRuleData.observe(this, Observer { data ->
+            data?.let {
+                handleCardRuleData(it)
+            }
+        })
+
+        // Observe the LiveData for set data
+        util.cardSetData.observe(this, Observer { data ->
+            data?.let {
+                handleCardSetData(it)
+            }
+        })
     }
 
     private fun initMainActivity(context: Context) {
-
-        initImmersiveMode()
-
-        val flag = checkSpeechRecognizer(context)
-        if(!flag){
-            Log.i(TAG, "Speech Recognition isn't supported")
-            Toast.makeText(this,"Speech Input is not supported",Toast.LENGTH_LONG).show()
-        }
-        Log.i(TAG, "Supports Speech Recognition")
-
         requestPermissions()
-
-        onKeyboardListen()
-
         onSpeechListenerSetup()
-
         micBtnSpeechListener()
     }
 
-    private fun initImmersiveMode() {
-        val windowInsetsController = WindowCompat.getInsetsController(window,window.decorView)
-        windowInsetsController.systemBarsBehavior = WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
-        ViewCompat.setOnApplyWindowInsetsListener(window.decorView) { view, windowInsets ->
-            if (windowInsets.isVisible(WindowInsetsCompat.Type.navigationBars())
-                || windowInsets.isVisible(WindowInsetsCompat.Type.statusBars())) {
-
-                    windowInsetsController.hide(WindowInsetsCompat.Type.systemBars())
-
-            }
-            ViewCompat.onApplyWindowInsets(view, windowInsets)
-        }
-    }
-
+    // Listener for microphone button
+    @SuppressLint("ClickableViewAccessibility")
     private fun micBtnSpeechListener() {
         micBtn.setOnTouchListener { _, motionEvent ->
             when (motionEvent.action) {
@@ -100,72 +96,65 @@ class MainActivity : ComponentActivity(),ScryfallCallback {
         }
     }
 
-
-
+    // Build a speech recognizer object
     private fun onSpeechListenerSetup() {
         speechRecognizer = SpeechRecognizer.createSpeechRecognizer(this)
         val intent = Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH)
-        intent.putExtra(
-            RecognizerIntent.EXTRA_LANGUAGE_MODEL,
-            RecognizerIntent.LANGUAGE_MODEL_FREE_FORM
-        );
-        intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE, java.util.Locale.getDefault());
+        intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM)
+        intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE, java.util.Locale.getDefault())
 
         speechRecognizer?.setRecognitionListener(object : RecognitionListener {
-            override fun onReadyForSpeech(bundle: Bundle) {
-            }
-
-            override fun onBeginningOfSpeech() {
-
-            }
-
-            override fun onRmsChanged(v: Float) {
-            }
-
-            override fun onBufferReceived(bytes: ByteArray) {
-            }
-
-            override fun onEndOfSpeech() {
-            }
-
-            override fun onError(i: Int) {
-            }
-
+            override fun onReadyForSpeech(bundle: Bundle) {}
+            override fun onBeginningOfSpeech() {}
+            override fun onRmsChanged(v: Float) {}
+            override fun onBufferReceived(bytes: ByteArray) {}
+            override fun onEndOfSpeech() {}
+            override fun onError(i: Int) {}
             override fun onResults(bundle: Bundle) {
                 val data = bundle.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION)?.get(0).toString()
-                Log.i(TAG, "Data from listener:$data")
+                Log.i(TAG, "Data from listener: $data")
                 sendData(data)
             }
-
-            override fun onPartialResults(bundle: Bundle) {
-            }
-
-            override fun onEvent(i: Int, bundle: Bundle) {
-            }
+            override fun onPartialResults(bundle: Bundle) {}
+            override fun onEvent(i: Int, bundle: Bundle) {}
         })
     }
 
-    private fun sendData(data: String) {
-        val regex = Regex("""card name ([\w\s]+)""")
-        val result = regex.find(data)
+    // Sends data to backend (util function)
+    private fun sendData(question: String) {
+        val genRuleQuestion = Regex("""card name \s+(?<card>.+)""",RegexOption.IGNORE_CASE)
+        val cardRulesQuestion = Regex("""card rules \s+(?<card>.+)""",RegexOption.IGNORE_CASE)
+        val cardSetQuestion = Regex("""card set \s+(?<card>.+)""",RegexOption.IGNORE_CASE)
 
-        if (result == null) {
-            Log.i(TAG, "Regex match failed — no result")
-            return
+        when{
+            genRuleQuestion.matches(question)->{
+                val match = genRuleQuestion.find(question)
+                val cardName = match?.groups?.get("card")?.value?.trim()
+                Log.i(TAG, "Result after regex filter: $cardName")
+                util.getCardData(cardName,false)
+            }
+            cardSetQuestion.matches(question)->{
+                val match = genRuleQuestion.find(question)
+                val cardName = match?.groups?.get("card")?.value?.trim()
+                Log.i(TAG, "Result after regex filter: $cardName")
+                util.getCardData(cardName,true)
+                // get rules id from cache
+                cache.get("ruling")?.let { util.getCardSetData(it) }
+            }
+            cardRulesQuestion.matches(question)->{
+                val match = genRuleQuestion.find(question)
+                val cardName = match?.groups?.get("card")?.value?.trim()
+                Log.i(TAG, "Result after regex filter: $cardName")
+                util.getCardData(cardName,true)
+                // Get set id from cache
+                cache.get("set")?.let {util.getCardSetData(it)}
+            }
         }
-
-        val cardName = result.groupValues[1].trim()
-
-        Log.i(TAG, "Result after regex filter: $cardName")
-        util.getCardData(MainActivity(), cardName)
     }
 
-
-
+    // Request microphone permission
     private fun requestPermissions() {
-        requestPermissionLauncher = registerForActivityResult(
-            ActivityResultContracts.RequestPermission()
-        ) { isGranted: Boolean ->
+        requestPermissionLauncher = registerForActivityResult(ActivityResultContracts.RequestPermission()) { isGranted ->
             if (isGranted) {
                 Toast.makeText(this, "Mic permission granted", Toast.LENGTH_SHORT).show()
             } else {
@@ -174,68 +163,65 @@ class MainActivity : ComponentActivity(),ScryfallCallback {
             }
         }
 
-        // Now actually launch the request
-        if (ContextCompat.checkSelfPermission(
-                this,
-                Manifest.permission.RECORD_AUDIO
-            ) != PackageManager.PERMISSION_GRANTED
-        ) {
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED) {
             requestPermissionLauncher.launch(Manifest.permission.RECORD_AUDIO)
-        } else {
-            // Permission already granted
         }
     }
 
-//        util.getCardRuleData(MainActivity(),"c0728027-a1ec-4814-87c4-10c3baced0e0")
-//        util.getCardSetData(MainActivity(), "5a645837-b050-449f-ac90-1e7ccbf45031")
+    // Handle the card data response
+    private fun handleCardData(data: Card, flag: Boolean) {
+        var output = ""
 
+        cache.put("ruling", data.rulingsUri)
+        cache.put("set", data.setUri)
 
+        if(!flag){
+            val manaCost = formatManaCost(data.manaCost)
+            val manaColor = formatManaColor(data.colors)
 
-    private fun onKeyboardListen(){
-        userTextInput.setOnKeyListener{v,keycode, event ->
-            if(event.action == android.view.KeyEvent.ACTION_DOWN && keycode == android.view.KeyEvent.KEYCODE_ENTER){
-                Log.i(TAG, "User pressed enter")
-                // Pass the data to the recycler view so it
-                // can append the data to the chat box
-
-                // Then this will also call the util.GetCardGenData
-                true
-            }else{
-                false
+            output = if (data.power == null && data.toughness == null || manaCost == " ") {
+                "The card ${data.name} has no power or toughness. " +
+                        "It has no mana cost and is in the color identity of ${manaColor}. ${data.name} has the ability ${data.oracleText}."
+            } else {
+                "The card ${data.name} has a base power of ${data.power} and a base toughness of ${data.toughness}. " +
+                        "It has a mana cost of ${manaCost} and is in the color identity of ${manaColor}. ${data.name} has the ability ${data.oracleText}."
             }
 
+            Log.i(TAG, output)
+
+            // Will need to make an object where 1 element has both user and ai chat
+            // [["Ai...","User..."],["Ai...","User..."]]
+
+            recyclerView.layoutManager = LinearLayoutManager(this)
+            recyclerView.adapter = AIChatAdapter(output)
         }
     }
 
-    /**
-     * This function checks if the given phone supports Speech Recognition
-     */
-    private fun checkSpeechRecognizer(context: Context): Boolean {
-        return SpeechRecognizer.isRecognitionAvailable((context))
-    }
+    // Handle the card rule data response
+    private fun handleCardRuleData(data: Rulings) {
+        Log.i(TAG, "Data from API for card rules data: $data")
 
-    /**
-     * This function will handle and format the general card data
-     */
-    override fun onGetCardData(data: Card?) {
-        val cache = LruCache<String,String?>(2)
-        cache.put("ruling", data?.rulingsUri)
-        cache.put("set", data?.setUri)
-        val manaCost = formatManaCost(data?.manaCost)
-        val manaColor = formatManaColor(data?.colors)
-        if(data?.power == null && data?.toughness == null && manaCost == " "){
-            val output = "The card ${data?.name} has no power or toughness. " +
-                    "It has no mana cost and is in the color identity of ${manaColor}." + " ${data?.name} has the ability ${data?.oracleText}."
+        if (data.moreData.isNullOrEmpty()) {
+            Log.i(TAG, "No rulings available")
+            return
         }
-        val output = "The card ${data?.name} has a base power of ${data?.power} and a base toughness of ${data?.toughness}. " +
-                "It has a mana cost of ${manaCost} and is in the color identity of ${manaColor}." + " ${data?.name} has the ability ${data?.oracleText}."
+
+        var output = "The rulings are: "
+        data.moreData.forEach { ruling ->
+            output += ruling.comment
+        }
         Log.i(TAG, output)
-            // Pass the output to the AI recycler view
     }
 
-    /**
-     * This function will format the mana cost to make it readable
-     */
+    // Handle the card set data response
+    private fun handleCardSetData(data: CardSet) {
+        Log.i(TAG, "Data from API for card set data: $data")
+
+        val output = "This card is from the set: ${data.name}."
+        Log.i(TAG, output)
+    }
+
+    // Format the mana cost
     private fun formatManaCost(manaCost: String?): String {
         val manaCostFormat = mutableListOf<String>()
         val splitCost = manaCost.toString().split('{', '}')
@@ -250,98 +236,29 @@ class MainActivity : ComponentActivity(),ScryfallCallback {
         manaCostFormat.forEachIndexed { index, cost ->
             val isLast = index == manaCostFormat.lastIndex
             if (isLast) {
-                when (cost.uppercase()) {
-                    "R" -> output += " and Red"
-                    "B" -> output += " and Black"
-                    "U" -> output += " and Blue"
-                    "W" -> output += " and White"
-                    "G" -> output += " and Green"
-                    else -> {
-                        // If it's a number (colorless mana)
-                        output += cost.toIntOrNull()?.let { " and $it colorless" }
-                            ?: "Colorless/Generic/Any Colors"
-                    }
-                }
+                output += cost.uppercase()
             } else {
-                when (cost.uppercase()) {
-                    "R" -> output += " Red,"
-                    "B" -> output += " Black,"
-                    "U" -> output += " Blue,"
-                    "W" -> output += " White,"
-                    "G" -> output += " Green,"
-                    else -> {
-                        // If it's a number (colorless mana)
-                        output += cost.toIntOrNull()?.let { "$it Colorless/Generic/Any Colors," }
-                    }
-                }
+                output += "$cost, "
             }
         }
         return output
     }
 
-    /**
-     * This function will format the mana color to make it more readable
-     */
+    // Format the mana color
     private fun formatManaColor(manaColor: List<String>?): String {
-        /**
-         * colors":["R","U","W"]) Will need to setup condition where R = Red, B = Black, U = Blue, W = White, G = Green, and empty [] = Colorless
-         */
-
         if (manaColor == null || manaColor.isEmpty()) {
             return "Colorless"
         }
 
         var output = ""
-
         manaColor.forEachIndexed { index, color ->
             val isLast = index == manaColor.lastIndex
             if (isLast) {
-                when (color.uppercase()) {
-                    "R" -> output += "and Red"
-                    "B" -> output += "and Black"
-                    "U" -> output += "and Blue"
-                    "W" -> output += "and White"
-                    "G" -> output += "and Green"
-                }
+                output += color.uppercase()
             } else {
-                when (color.uppercase()) {
-                    "R" -> output += "Red, "
-                    "B" -> output += "Black, "
-                    "U" -> output += "Blue, "
-                    "G" -> output += "Green, "
-                    "W" -> output += "White, "
-                }
+                output += "$color, "
             }
         }
         return output
-    }
-
-
-    override fun onGetCardRuleData(data: Rulings?) {
-
-        Log.i(TAG, "Data from API for card rules data: $data")
-
-        if(data == null){
-            // Will need to save this
-           // "There are no available rules"
-        }
-
-        var output = "The rulings are: "
-
-        data?.moreData?.forEach{ruling ->
-            output += ruling.comment
-        }
-        Log.i(TAG,output)
-    }
-
-    override fun onGetCardSetData(data: CardSet?) {
-        Log.i(TAG, "Data from API for card set data: $data" )
-
-        if(data == null){
-            // "There are no listed sets
-        }
-
-        val output = "This card is from the set: ${data?.name}."
-        Log.i(TAG,output)
     }
 }

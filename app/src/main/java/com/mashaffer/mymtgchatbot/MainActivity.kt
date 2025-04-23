@@ -33,7 +33,7 @@ class MainActivity : ComponentActivity() {
     private val micBtn: ImageButton by lazy { findViewById(R.id.micBtn) }
     private val userTextInput: EditText by lazy { findViewById(R.id.cardInput) }
     private val recyclerView: RecyclerView by lazy { findViewById(R.id.chatRoom) }
-    private val phraseBtn: Button by lazy {findViewById(R.id.phraseBtn)}
+    private val phraseBtn: Button by lazy { findViewById(R.id.phraseBtn) }
 
     // Extra Variables
     private lateinit var requestPermissionLauncher: ActivityResultLauncher<String>
@@ -59,24 +59,50 @@ class MainActivity : ComponentActivity() {
 
         // Observe the LiveData for card data
         util.cardData.observe(this, Observer { data ->
-            data?.let {
-                it.card?.let { it1 -> handleCardData(it1, it.question, it.additionalInfo) }
+            if (data.card != null) {
+                data.let {
+                    it.card?.let { it1 -> handleCardData(it1, it.question, it.additionalInfo) }
+                }
+            } else {
+                apiErrorPopUp()
             }
+
         })
 
         // Observe the LiveData for rule data
         util.cardRuleData.observe(this, Observer { data ->
-            data?.let {
-                it.rulings?.let { it1 -> handleCardRuleData(it1,it.userQuery) }
+            if (data?.rulings != null) {
+                data.let {
+                    it.rulings?.let { it1 -> handleCardRuleData(it1, it.userQuery) }
+                }
+            } else {
+                apiErrorPopUp()
             }
+
         })
 
         // Observe the LiveData for set data
         util.cardSetData.observe(this, Observer { data ->
-            data?.let {
-                it.set?.let { it1 -> handleCardSetData(it1,it.userQuery) }
+            if (data?.set != null) {
+                data.let {
+                    it.set?.let { it1 -> handleCardSetData(it1, it.userQuery) }
+                }
+            } else {
+                apiErrorPopUp()
             }
         })
+    }
+
+    // Displays Error message when API fails
+    private fun apiErrorPopUp() {
+        Log.i(TAG, "Displayed API Error Popup")
+        val builder = AlertDialog.Builder(this)
+        val errorPopUp = layoutInflater.inflate(R.layout.api_error_alert_dialog, null)
+
+        builder.setView(errorPopUp).setNegativeButton("Close") { dialog, _ ->
+            dialog.dismiss()
+        }.show()
+
     }
 
     // Initialize function
@@ -91,15 +117,16 @@ class MainActivity : ComponentActivity() {
     // Displays an alert dialog to help with phrases
     private fun displayPhrasesKey() {
         val builder = AlertDialog.Builder(this)
-        val display = layoutInflater.inflate(R.layout.phrases_key_alert_dialog_layout,null)
 
-        phraseBtn.setOnClickListener{
-            builder.setView(display).setNegativeButton("Close"){dialog, id->
+        phraseBtn.setOnClickListener {
+            val display = layoutInflater.inflate(R.layout.phrases_key_alert_dialog_layout, null)
 
-            }
-            builder.show()
+            builder.setView(display).setNegativeButton("Close") { dialog, _ ->
+                    dialog.dismiss()
+                }.show()
         }
     }
+
 
     // Listener for keyboard
     private fun keyboardListener() {
@@ -139,8 +166,7 @@ class MainActivity : ComponentActivity() {
         speechRecognizer = SpeechRecognizer.createSpeechRecognizer(this)
         val intent = Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH)
         intent.putExtra(
-            RecognizerIntent.EXTRA_LANGUAGE_MODEL,
-            RecognizerIntent.LANGUAGE_MODEL_FREE_FORM
+            RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM
         )
         intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE, java.util.Locale.getDefault())
 
@@ -176,73 +202,71 @@ class MainActivity : ComponentActivity() {
                 val match = genRuleQuestion.find(question)
                 val cardName = match?.groupValues?.get(1)?.trim()
                 Log.i(TAG, "Result after regex filter: $cardName")
-                util.getCardData(cardName, question,false)
+                util.getCardData(cardName, question, false)
             }
 
             cardRulesQuestion.matchEntire(question) != null -> {
                 val match = cardRulesQuestion.find(question)
                 val cardName = match?.groupValues?.get(1)?.trim()
                 Log.i(TAG, "Result after regex card rules filter: $cardName")
-                util.getCardData(cardName, question,true)
-                cache.get("ruling")?.let { util.getCardRuleData(it,question) }
+                util.getCardData(cardName, question, true)
+                cache.get("ruling")?.let { util.getCardRuleData(it, question) }
             }
 
             cardSetQuestion.matchEntire(question) != null -> {
                 val match = cardSetQuestion.find(question)
                 val cardName = match?.groupValues?.get(1)?.trim()
                 Log.i(TAG, "Result after regex card set filter: $cardName")
-                util.getCardData(cardName, question,true)
-                cache.get("set")?.let { util.getCardSetData(it,question) }
+                util.getCardData(cardName, question, true)
+                cache.get("set")?.let { util.getCardSetData(it, question) }
             }
         }
     }
 
     // Request microphone permission
     private fun requestPermissions() {
-        requestPermissionLauncher = registerForActivityResult(ActivityResultContracts.RequestPermission()) { isGranted ->
-            if (isGranted) {
-                Toast.makeText(this, "Mic permission granted", Toast.LENGTH_SHORT).show()
-            } else {
-                Toast.makeText(this, "Mic permission denied", Toast.LENGTH_SHORT).show()
-                micBtn.isEnabled = false
+        requestPermissionLauncher =
+            registerForActivityResult(ActivityResultContracts.RequestPermission()) { isGranted ->
+                if (isGranted) {
+                    Toast.makeText(this, "Mic permission granted", Toast.LENGTH_SHORT).show()
+                } else {
+                    Toast.makeText(this, "Mic permission denied", Toast.LENGTH_SHORT).show()
+                    micBtn.isEnabled = false
+                }
             }
-        }
 
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED) {
+        if (ContextCompat.checkSelfPermission(
+                this, Manifest.permission.RECORD_AUDIO
+            ) != PackageManager.PERMISSION_GRANTED
+        ) {
             requestPermissionLauncher.launch(Manifest.permission.RECORD_AUDIO)
         }
     }
 
     // Handle the card data response
-    private fun handleCardData(data: Card, question:String?, flag: Boolean) {
+    private fun handleCardData(data: Card, question: String?, flag: Boolean) {
         var output = ""
 
         cache.put("ruling", data.rulingsUri.substringAfter("/cards/").substringBefore("/rulings"))
         cache.put("set", data.setUri.substringAfter("/sets/"))
 
-        if(!flag){
+        if (!flag) {
             val manaColor = formatManaColor(data.colors)
 
             output = if (data.power == null && data.toughness == null || data.manaCost == " ") {
-                "The card ${data.name} has no power or toughness. " +
-                        "It has no mana cost and is in the color identity of ${manaColor}. ${data.name} has the ability ${data.oracleText}."
+                "The card ${data.name} has no power or toughness. " + "It has no mana cost and is in the color identity of ${manaColor}. ${data.name} has the ability ${data.oracleText}."
             } else {
-                "The card ${data.name} has a base power of ${data.power} and a base toughness of ${data.toughness}. " +
-                        "It has a mana cost of ${data.manaCost}and is in the color identity of ${manaColor}. ${data.name} has the ability ${data.oracleText}."
+                "The card ${data.name} has a base power of ${data.power} and a base toughness of ${data.toughness}. " + "It has a mana cost of ${data.manaCost}and is in the color identity of ${manaColor}. ${data.name} has the ability ${data.oracleText}."
             }
 
             // Format string to handle more scryfall syntax
-            output = output.replace("{T}", "Tap")
-                .replace("{U}", "Blue ")
-                .replace("{G}", "Green ")
-                .replace("{B}", "Black ")
-                .replace("{R}", "Red ")
-                .replace("{W}", "White ")
+            output = output.replace("{T}", "Tap").replace("{U}", "Blue ").replace("{G}", "Green ")
+                .replace("{B}", "Black ").replace("{R}", "Red ").replace("{W}", "White ")
                 .replace("{C}", "Colorless ")
 
             Log.i(TAG, output)
 
-            updateChat(output,question)
+            updateChat(output, question)
         }
     }
 
@@ -252,7 +276,7 @@ class MainActivity : ComponentActivity() {
         userQuery?.let { ChatMessage(Actor.USER, it) }?.let { chat.add(it) }
 
         // Add Ai response
-        chat.add(ChatMessage(Actor.AI,aiResponse))
+        chat.add(ChatMessage(Actor.AI, aiResponse))
 
         Log.i(TAG, "Updated chat array: $chat")
         recyclerView.layoutManager = LinearLayoutManager(this)
@@ -260,12 +284,12 @@ class MainActivity : ComponentActivity() {
     }
 
     // Handle the card rule data response
-    private fun handleCardRuleData(data: Rulings,question: String?) {
+    private fun handleCardRuleData(data: Rulings, question: String?) {
         Log.i(TAG, "Data from API for card rules data: $data")
 
         if (data.moreData.isEmpty()) {
             Log.i(TAG, "No rulings available")
-            updateChat("No rulings available",question)
+            updateChat("No rulings available", question)
         }
 
         var output = "The rulings are: "
@@ -277,7 +301,7 @@ class MainActivity : ComponentActivity() {
     }
 
     // Handle the card set data response
-    private fun handleCardSetData(data: CardSet,question: String?) {
+    private fun handleCardSetData(data: CardSet, question: String?) {
         Log.i(TAG, "Data from API for card set data: $data")
 
         val output = "This card is from the set: ${data.name}."
@@ -300,11 +324,7 @@ class MainActivity : ComponentActivity() {
                 output += "$color, "
             }
         }
-        return output.replace("U", "Blue ")
-            .replace("G", "Green ")
-            .replace("B", "Black ")
-            .replace("R", "Red ")
-            .replace("W", "White ")
-            .replace("C", "Colorless ")
+        return output.replace("U", "Blue ").replace("G", "Green ").replace("B", "Black ")
+            .replace("R", "Red ").replace("W", "White ").replace("C", "Colorless ")
     }
 }

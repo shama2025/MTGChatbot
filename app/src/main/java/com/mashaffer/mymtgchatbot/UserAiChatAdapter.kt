@@ -8,14 +8,16 @@ import android.widget.TextView
 import androidx.cardview.widget.CardView
 import androidx.recyclerview.widget.RecyclerView
 
-class UserAiChatAdapter(private val chat: List<ChatMessage>) : RecyclerView.Adapter<UserAiChatAdapter.AIChatViewHolder>() {
+class UserAiChatAdapter(private val chat: List<ChatMessage>) :
+    RecyclerView.Adapter<UserAiChatAdapter.AIChatViewHolder>() {
 
     companion object {
         private const val TAG = "UserAIChatAdapter"
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): AIChatViewHolder {
-        val view = LayoutInflater.from(parent.context).inflate(R.layout.user_ai_chat_layout, parent, false)
+        val view =
+            LayoutInflater.from(parent.context).inflate(R.layout.user_ai_chat_layout, parent, false)
         return AIChatViewHolder(view)
     }
 
@@ -41,6 +43,7 @@ class UserAiChatAdapter(private val chat: List<ChatMessage>) : RecyclerView.Adap
                     userChatBox.visibility = View.GONE
                     aiChatBox.text = "AI: ${message.content}"
                 }
+
                 Actor.USER -> {
                     userChatBox.visibility = View.VISIBLE
                     aiChatBox.visibility = View.GONE

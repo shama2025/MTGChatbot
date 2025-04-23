@@ -4,7 +4,6 @@ import Card
 import Rulings
 import android.Manifest
 import android.annotation.SuppressLint
-import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Bundle
@@ -13,6 +12,7 @@ import android.speech.RecognizerIntent
 import android.speech.SpeechRecognizer
 import android.util.LruCache
 import android.util.Log
+import android.view.KeyEvent
 import android.view.MotionEvent
 import android.widget.EditText
 import android.widget.ImageButton
@@ -38,6 +38,7 @@ class MainActivity : ComponentActivity() {
     private lateinit var util: Util
     private var chat = mutableListOf<ChatMessage>()
 
+    // Companion Object
     companion object {
         private const val TAG = "MainActivity"
         private val cache = LruCache<String, String?>(2)
@@ -47,9 +48,11 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.main_activity)
 
-        util = ViewModelProvider(this).get(Util::class.java)
+        // View model for listening to saved data
+        util = ViewModelProvider(this)[Util::class.java]
 
-        initMainActivity(this)
+        // Initialize Main activity
+        initMainActivity()
 
         // Observe the LiveData for card data
         util.cardData.observe(this, Observer { data ->
@@ -73,10 +76,27 @@ class MainActivity : ComponentActivity() {
         })
     }
 
-    private fun initMainActivity(context: Context) {
+    // Initialize function
+    private fun initMainActivity() {
         requestPermissions()
         onSpeechListenerSetup()
         micBtnSpeechListener()
+        keyboardListener()
+    }
+
+    // Listener for keyboard
+    private fun keyboardListener() {
+        userTextInput.setOnEditorActionListener { textView, i, keyEvent ->
+            if (keyEvent != null && keyEvent.keyCode == KeyEvent.KEYCODE_ENTER && keyEvent.action == KeyEvent.ACTION_DOWN) {
+                val userInput = userTextInput.text.toString()
+                Log.d("KeyboardListener", "User entered: $userInput")
+                sendData(userInput)
+                userTextInput.text.clear()
+                true
+            } else {
+                false
+            }
+        }
     }
 
     // Listener for microphone button
@@ -126,7 +146,7 @@ class MainActivity : ComponentActivity() {
         })
     }
 
-    // Sends data to backend (util function)
+    // Sends Data to backend depending on question
     private fun sendData(question: String) {
         val genRuleQuestion = Regex("""card name\s+(.+)""", RegexOption.IGNORE_CASE)
         val cardRulesQuestion = Regex("""card rules\s+(.+)""", RegexOption.IGNORE_CASE)
@@ -142,18 +162,18 @@ class MainActivity : ComponentActivity() {
                 util.getCardData(cardName, question,false)
             }
 
-            cardSetQuestion.matchEntire(question) != null -> {
-                val match = cardSetQuestion.find(question)
-                val cardName = match?.groupValues?.get(1)?.trim()
-                Log.i(TAG, "Result after regex filter: $cardName")
-                util.getCardData(cardName, question,true)
-                cache.get("ruling")?.let { util.getCardSetData(it,question) }
-            }
-
             cardRulesQuestion.matchEntire(question) != null -> {
                 val match = cardRulesQuestion.find(question)
                 val cardName = match?.groupValues?.get(1)?.trim()
-                Log.i(TAG, "Result after regex filter: $cardName")
+                Log.i(TAG, "Result after regex card rules filter: $cardName")
+                util.getCardData(cardName, question,true)
+                cache.get("ruling")?.let { util.getCardRuleData(it,question) }
+            }
+
+            cardSetQuestion.matchEntire(question) != null -> {
+                val match = cardSetQuestion.find(question)
+                val cardName = match?.groupValues?.get(1)?.trim()
+                Log.i(TAG, "Result after regex card set filter: $cardName")
                 util.getCardData(cardName, question,true)
                 cache.get("set")?.let { util.getCardSetData(it,question) }
             }
@@ -180,30 +200,29 @@ class MainActivity : ComponentActivity() {
     private fun handleCardData(data: Card, question:String?, flag: Boolean) {
         var output = ""
 
-        cache.put("ruling", data.rulingsUri)
-        cache.put("set", data.setUri)
+        cache.put("ruling", data.rulingsUri.substringAfter("/cards/").substringBefore("/rulings"))
+        cache.put("set", data.setUri.substringAfter("/sets/"))
 
         if(!flag){
             val manaCost = formatManaCost(data.manaCost)
             val manaColor = formatManaColor(data.colors)
 
-            output = if (data.power == null && data.toughness == null || manaCost == " ") {
+            output = if (data.power == null && data.toughness == null || data.manaCost == " ") {
                 "The card ${data.name} has no power or toughness. " +
-                        "It has no mana cost and is in the color identity of ${manaColor}. ${data.name} has the ability ${data.oracleText}."
+                        "It has no mana cost and is in the color identity of ${data.colors}. ${data.name} has the ability ${data.oracleText}."
             } else {
                 "The card ${data.name} has a base power of ${data.power} and a base toughness of ${data.toughness}. " +
-                        "It has a mana cost of ${manaCost} and is in the color identity of ${manaColor}. ${data.name} has the ability ${data.oracleText}."
+                        "It has a mana cost of ${data.manaCost}and is in the color identity of ${manaColor}. ${data.name} has the ability ${data.oracleText}."
             }
 
             // Format string to handle more scryfall syntax
-            output = output
-                .replace("{U}", "Blue")
-                .replace("{G}", "Green")
-                .replace("{B}", "Black")
-                .replace("{R}", "Red")
-                .replace("{W}", "White")
-                .replace("{C}", "Colorless")
-                .replace("{T}", "Tap")
+            output = output.replace("{T}", "Tap")
+                .replace("{U}", "Blue ")
+                .replace("{G}", "Green ")
+                .replace("{B}", "Black ")
+                .replace("{R}", "Red ")
+                .replace("{W}", "White ")
+                .replace("{C}", "Colorless ")
 
             Log.i(TAG, output)
 
@@ -211,6 +230,7 @@ class MainActivity : ComponentActivity() {
         }
     }
 
+    // Updates the UI
     private fun updateChat(aiResponse: String, userQuery: String?) {
         // Add users question to list
         userQuery?.let { ChatMessage(Actor.USER, it) }?.let { chat.add(it) }
@@ -227,16 +247,16 @@ class MainActivity : ComponentActivity() {
     private fun handleCardRuleData(data: Rulings,question: String?) {
         Log.i(TAG, "Data from API for card rules data: $data")
 
-        if (data.moreData.isNullOrEmpty()) {
+        if (data.moreData.isEmpty()) {
             Log.i(TAG, "No rulings available")
-            return
+            updateChat("No rulings available",question)
         }
 
         var output = "The rulings are: "
         data.moreData.forEach { ruling ->
             output += ruling.comment
         }
-        Log.i(TAG, output)
+        Log.i(TAG, "Output for rules: $output")
         updateChat(output, question)
     }
 
@@ -257,7 +277,13 @@ class MainActivity : ComponentActivity() {
 
         splitCost.forEach { cost ->
             if (cost.isNotBlank()) {
-                manaCostFormat.add(cost)
+                manaCostFormat.add(cost.replace("U", "Blue ")
+                    .replace("G", "Green ")
+                    .replace("B", "Black ")
+                    .replace("R", "Red ")
+                    .replace("W", "White ")
+                    .replace("C", "Colorless ")
+                    .replace("\\\\d+","$cost colorless"))
             }
         }
 
@@ -266,7 +292,13 @@ class MainActivity : ComponentActivity() {
             if (isLast) {
                 output += cost.uppercase()
             } else {
-                output += "$cost, "
+                output += "${cost.replace("U", "Blue ")
+                    .replace("G", "Green ")
+                    .replace("B", "Black ")
+                    .replace("R", "Red ")
+                    .replace("W", "White ")
+                    .replace("C", "Colorless ")
+                    .replace("\\\\d+","$cost colorless")}, "
             }
         }
         return output
@@ -274,7 +306,7 @@ class MainActivity : ComponentActivity() {
 
     // Format the mana color
     private fun formatManaColor(manaColor: List<String>?): String {
-        if (manaColor == null || manaColor.isEmpty()) {
+        if (manaColor.isNullOrEmpty()) {
             return "Colorless"
         }
 
@@ -287,6 +319,11 @@ class MainActivity : ComponentActivity() {
                 output += "$color, "
             }
         }
-        return output
+        return output.replace("U", "Blue ")
+            .replace("G", "Green ")
+            .replace("B", "Black ")
+            .replace("R", "Red ")
+            .replace("W", "White ")
+            .replace("C", "Colorless ")
     }
 }

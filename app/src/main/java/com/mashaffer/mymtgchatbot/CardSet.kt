@@ -1,5 +1,6 @@
 package com.mashaffer.mymtgchatbot
 
+// Data class for card set data
 data class CardSet(
     val `object`: String,
     val id: String,

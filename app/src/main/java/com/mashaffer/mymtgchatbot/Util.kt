@@ -46,10 +46,10 @@ class Util : ViewModel() {
             try {
                 val result = scryfallApi.getCardRuleData(cardID)
                 if (result.isSuccessful) {
-                    Log.i(TAG, "Successful API Call: ${result.body()}")
+                    Log.i(TAG, "Successful Card Rules API Call: ${result.body()}")
                     cardRuleData.postValue(RulingResponse(result.body(),question))
                 } else {
-                    Log.i(TAG, "Error getting Card Information: ${result.code()}")
+                    Log.i(TAG, "Error getting Card Rules Information: ${result.code()}")
                     cardRuleData.postValue(RulingResponse(null,question))
                 }
             } catch (e: Exception) {

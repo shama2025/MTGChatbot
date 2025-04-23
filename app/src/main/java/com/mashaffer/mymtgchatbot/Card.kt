@@ -1,5 +1,6 @@
 import com.google.gson.annotations.SerializedName
 
+// Data class for response from scryfall
 data class Card(
     @SerializedName("object") val `object`: String,
     @SerializedName("id") val id: String,

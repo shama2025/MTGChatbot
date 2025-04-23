@@ -36,11 +36,11 @@ class MainActivity : ComponentActivity() {
     private lateinit var requestPermissionLauncher: ActivityResultLauncher<String>
     private var speechRecognizer: SpeechRecognizer? = null
     private lateinit var util: Util
+    private var chat = mutableListOf<ChatMessage>()
 
     companion object {
         private const val TAG = "MainActivity"
         private val cache = LruCache<String, String?>(2)
-
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -54,21 +54,21 @@ class MainActivity : ComponentActivity() {
         // Observe the LiveData for card data
         util.cardData.observe(this, Observer { data ->
             data?.let {
-                it.card?.let { it1 -> handleCardData(it1,it.additionalInfo) }
+                it.card?.let { it1 -> handleCardData(it1, it.question, it.additionalInfo) }
             }
         })
 
         // Observe the LiveData for rule data
         util.cardRuleData.observe(this, Observer { data ->
             data?.let {
-                handleCardRuleData(it)
+                it.rulings?.let { it1 -> handleCardRuleData(it1,it.userQuery) }
             }
         })
 
         // Observe the LiveData for set data
         util.cardSetData.observe(this, Observer { data ->
             data?.let {
-                handleCardSetData(it)
+                it.set?.let { it1 -> handleCardSetData(it1,it.userQuery) }
             }
         })
     }
@@ -87,6 +87,7 @@ class MainActivity : ComponentActivity() {
                 MotionEvent.ACTION_DOWN -> {
                     speechRecognizer?.startListening(intent)
                 }
+
                 MotionEvent.ACTION_UP -> {
                     speechRecognizer?.stopListening()
                     micBtn.performClick()
@@ -100,7 +101,10 @@ class MainActivity : ComponentActivity() {
     private fun onSpeechListenerSetup() {
         speechRecognizer = SpeechRecognizer.createSpeechRecognizer(this)
         val intent = Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH)
-        intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM)
+        intent.putExtra(
+            RecognizerIntent.EXTRA_LANGUAGE_MODEL,
+            RecognizerIntent.LANGUAGE_MODEL_FREE_FORM
+        )
         intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE, java.util.Locale.getDefault())
 
         speechRecognizer?.setRecognitionListener(object : RecognitionListener {
@@ -111,10 +115,12 @@ class MainActivity : ComponentActivity() {
             override fun onEndOfSpeech() {}
             override fun onError(i: Int) {}
             override fun onResults(bundle: Bundle) {
-                val data = bundle.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION)?.get(0).toString()
+                val data = bundle.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION)?.get(0)
+                    .toString()
                 Log.i(TAG, "Data from listener: $data")
                 sendData(data)
             }
+
             override fun onPartialResults(bundle: Bundle) {}
             override fun onEvent(i: Int, bundle: Bundle) {}
         })
@@ -122,32 +128,34 @@ class MainActivity : ComponentActivity() {
 
     // Sends data to backend (util function)
     private fun sendData(question: String) {
-        val genRuleQuestion = Regex("""card name \s+(?<card>.+)""",RegexOption.IGNORE_CASE)
-        val cardRulesQuestion = Regex("""card rules \s+(?<card>.+)""",RegexOption.IGNORE_CASE)
-        val cardSetQuestion = Regex("""card set \s+(?<card>.+)""",RegexOption.IGNORE_CASE)
+        val genRuleQuestion = Regex("""card name\s+(.+)""", RegexOption.IGNORE_CASE)
+        val cardRulesQuestion = Regex("""card rules\s+(.+)""", RegexOption.IGNORE_CASE)
+        val cardSetQuestion = Regex("""card set\s+(.+)""", RegexOption.IGNORE_CASE)
 
-        when{
-            genRuleQuestion.matches(question)->{
+        Log.i(TAG, "Question asked: $question")
+
+        when {
+            genRuleQuestion.matchEntire(question) != null -> {
                 val match = genRuleQuestion.find(question)
-                val cardName = match?.groups?.get("card")?.value?.trim()
+                val cardName = match?.groupValues?.get(1)?.trim()
                 Log.i(TAG, "Result after regex filter: $cardName")
-                util.getCardData(cardName,false)
+                util.getCardData(cardName, question,false)
             }
-            cardSetQuestion.matches(question)->{
-                val match = genRuleQuestion.find(question)
-                val cardName = match?.groups?.get("card")?.value?.trim()
+
+            cardSetQuestion.matchEntire(question) != null -> {
+                val match = cardSetQuestion.find(question)
+                val cardName = match?.groupValues?.get(1)?.trim()
                 Log.i(TAG, "Result after regex filter: $cardName")
-                util.getCardData(cardName,true)
-                // get rules id from cache
-                cache.get("ruling")?.let { util.getCardSetData(it) }
+                util.getCardData(cardName, question,true)
+                cache.get("ruling")?.let { util.getCardSetData(it,question) }
             }
-            cardRulesQuestion.matches(question)->{
-                val match = genRuleQuestion.find(question)
-                val cardName = match?.groups?.get("card")?.value?.trim()
+
+            cardRulesQuestion.matchEntire(question) != null -> {
+                val match = cardRulesQuestion.find(question)
+                val cardName = match?.groupValues?.get(1)?.trim()
                 Log.i(TAG, "Result after regex filter: $cardName")
-                util.getCardData(cardName,true)
-                // Get set id from cache
-                cache.get("set")?.let {util.getCardSetData(it)}
+                util.getCardData(cardName, question,true)
+                cache.get("set")?.let { util.getCardSetData(it,question) }
             }
         }
     }
@@ -169,7 +177,7 @@ class MainActivity : ComponentActivity() {
     }
 
     // Handle the card data response
-    private fun handleCardData(data: Card, flag: Boolean) {
+    private fun handleCardData(data: Card, question:String?, flag: Boolean) {
         var output = ""
 
         cache.put("ruling", data.rulingsUri)
@@ -187,18 +195,36 @@ class MainActivity : ComponentActivity() {
                         "It has a mana cost of ${manaCost} and is in the color identity of ${manaColor}. ${data.name} has the ability ${data.oracleText}."
             }
 
+            // Format string to handle more scryfall syntax
+            output = output
+                .replace("{U}", "Blue")
+                .replace("{G}", "Green")
+                .replace("{B}", "Black")
+                .replace("{R}", "Red")
+                .replace("{W}", "White")
+                .replace("{C}", "Colorless")
+                .replace("{T}", "Tap")
+
             Log.i(TAG, output)
 
-            // Will need to make an object where 1 element has both user and ai chat
-            // [["Ai...","User..."],["Ai...","User..."]]
-
-            recyclerView.layoutManager = LinearLayoutManager(this)
-            recyclerView.adapter = AIChatAdapter(output)
+            updateChat(output,question)
         }
     }
 
+    private fun updateChat(aiResponse: String, userQuery: String?) {
+        // Add users question to list
+        userQuery?.let { ChatMessage(Actor.USER, it) }?.let { chat.add(it) }
+
+        // Add Ai response
+        chat.add(ChatMessage(Actor.AI,aiResponse))
+
+        Log.i(TAG, "Updated chat array: $chat")
+        recyclerView.layoutManager = LinearLayoutManager(this)
+        recyclerView.adapter = UserAiChatAdapter(chat)
+    }
+
     // Handle the card rule data response
-    private fun handleCardRuleData(data: Rulings) {
+    private fun handleCardRuleData(data: Rulings,question: String?) {
         Log.i(TAG, "Data from API for card rules data: $data")
 
         if (data.moreData.isNullOrEmpty()) {
@@ -211,14 +237,16 @@ class MainActivity : ComponentActivity() {
             output += ruling.comment
         }
         Log.i(TAG, output)
+        updateChat(output, question)
     }
 
     // Handle the card set data response
-    private fun handleCardSetData(data: CardSet) {
+    private fun handleCardSetData(data: CardSet,question: String?) {
         Log.i(TAG, "Data from API for card set data: $data")
 
         val output = "This card is from the set: ${data.name}."
         Log.i(TAG, output)
+        updateChat(output, question)
     }
 
     // Format the mana cost

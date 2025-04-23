@@ -19,60 +19,60 @@ class Util : ViewModel() {
 
     // Exposed LiveData
     val cardData = MutableLiveData<CardResponse>()
-    val cardRuleData = MutableLiveData<Rulings?>()
-    val cardSetData = MutableLiveData<CardSet?>()
+    val cardRuleData = MutableLiveData<RulingResponse?>()
+    val cardSetData = MutableLiveData<CardSetResponse?>()
 
-    fun getCardData(cardName: String?, fromSpeech: Boolean) {
+    fun getCardData(cardName: String?, question: String? ,fromSpeech: Boolean) {
         viewModelScope.launch {
             try {
                 val result = scryfallApi.getCardGenData(cardName)
                 if (result.isSuccessful) {
                     Log.i(TAG, "Successful API Call: ${result.body()}")
-                    cardData.postValue(CardResponse(result.body(), fromSpeech))
+                    cardData.postValue(CardResponse(result.body(), question,fromSpeech))
                 } else {
                     Log.i(TAG, "Error getting Card Information: ${result.code()}")
-                    cardData.postValue(CardResponse(null, fromSpeech))
+                    cardData.postValue(CardResponse(null, question,fromSpeech))
                 }
             } catch (e: Exception) {
                 Log.i(TAG, "Failed API Call for General Card Data: ${e.message}")
-                cardData.postValue(CardResponse(null, fromSpeech))
+                cardData.postValue(CardResponse(null, question,fromSpeech))
             }
         }
     }
 
 
-    fun getCardRuleData(cardID: String) {
+    fun getCardRuleData(cardID: String, question: String?) {
         viewModelScope.launch {
             try {
                 val result = scryfallApi.getCardRuleData(cardID)
                 if (result.isSuccessful) {
                     Log.i(TAG, "Successful API Call: ${result.body()}")
-                    cardRuleData.postValue(result.body())
+                    cardRuleData.postValue(RulingResponse(result.body(),question))
                 } else {
                     Log.i(TAG, "Error getting Card Information: ${result.code()}")
-                    cardRuleData.postValue(null)
+                    cardRuleData.postValue(RulingResponse(null,question))
                 }
             } catch (e: Exception) {
                 Log.i(TAG, "Failed API Call for Additional Rules: ${e.message}")
-                cardRuleData.postValue(null)
+                cardRuleData.postValue(RulingResponse(null,question))
             }
         }
     }
 
-    fun getCardSetData(setID: String) {
+    fun getCardSetData(setID: String,question: String?) {
         viewModelScope.launch {
             try {
                 val result = scryfallApi.getCardSetData(setID)
                 if (result.isSuccessful) {
                     Log.i(TAG, "Successful API Call: ${result.body()}")
-                    cardSetData.postValue(result.body())
+                    cardSetData.postValue(CardSetResponse(result.body(),question))
                 } else {
                     Log.i(TAG, "Error getting Card Information: ${result.code()}")
-                    cardSetData.postValue(null)
+                    cardSetData.postValue(CardSetResponse(null,question))
                 }
             } catch (e: Exception) {
                 Log.i(TAG, "Failed API Call for Set Information: ${e.message}")
-                cardSetData.postValue(null)
+                cardSetData.postValue(CardSetResponse(null,question))
             }
         }
     }

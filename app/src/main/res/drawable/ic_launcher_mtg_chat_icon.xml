@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="512"
+    android:viewportHeight="512">
+
+    <!-- Background circle -->
+    <path
+        android:fillColor="#1a1a1a"
+        android:pathData="M256,16A240,240 0 1,1 16,256A240,240 0 0,1 256,16z" />
+
+    <!-- Magic card back inspired pattern -->
+    <path
+        android:fillColor="#0e7a9b"
+        android:pathData="M256,46A210,210 0 1,1 46,256A210,210 0 0,1 256,46z" />
+    <path
+        android:fillColor="#0b6685"
+        android:pathData="M256,71A185,185 0 1,1 71,256A185,185 0 0,1 256,71z" />
+    <path
+        android:fillColor="#085570"
+        android:pathData="M256,96A160,160 0 1,1 96,256A160,160 0 0,1 256,96z" />
+
+    <!-- White mana symbol -->
+    <path
+        android:fillColor="#f8f8f8"
+        android:pathData="M256,100A36,36 0 1,1 220,136A36,36 0 0,1 256,100z" />
+    <path
+        android:fillColor="#e0e0e0"
+        android:pathData="M256,118L264,146L292,146L270,164L278,192L256,174L234,192L242,164L220,146L248,146Z" />
+
+    <!-- Blue mana symbol -->
+    <path
+        android:fillColor="#0077cc"
+        android:pathData="M370,219A36,36 0 1,1 334,255A36,36 0 0,1 370,219z" />
+    <path
+        android:fillColor="#00aaff"
+        android:pathData="M370,219C380,199 400,199 400,219C400,239 380,239 370,219C360,199 340,199 340,219C340,239 360,239 370,219Z" />
+
+    <!-- Black mana symbol -->
+    <path
+        android:fillColor="#333333"
+        android:pathData="M326,353A36,36 0 1,1 290,389A36,36 0 0,1 326,353z" />
+    <path
+        android:fillColor="#000000"
+        android:pathData="M326,329C336,343 350,353 350,353C350,353 336,363 326,377C316,363 302,353 302,353C302,353 316,343 326,329Z" />
+
+    <!-- Red mana symbol -->
+    <path
+        android:fillColor="#cc3300"
+        android:pathData="M186,353A36,36 0 1,1 150,389A36,36 0 0,1 186,353z" />
+    <path
+        android:fillColor="#ff3300"
+        android:pathData="M186,329L194,345L210,345L198,357L202,373L186,363L170,373L174,357L162,345L178,345Z" />
+
+    <!-- Green mana symbol -->
+    <path
+        android:fillColor="#00aa00"
+        android:pathData="M142,219A36,36 0 1,1 106,255A36,36 0 0,1 142,219z" />
+    <path
+        android:fillColor="#00cc00"
+        android:pathData="M142,195L146,211L162,215L150,227L154,243L142,235L130,243L134,227L122,215L138,211Z" />
+
+    <!-- Chat bubble overlay -->
+    <path
+        android:fillColor="#ffffff"
+        android:fillAlpha="0.9"
+        android:pathData="M206,206Q196,206 196,216L196,296Q196,306 206,306L286,306L306,326L306,306L306,306Q316,306 316,296L316,216Q316,206 306,206Z" />
+
+    <!-- Three horizontal lines representing text -->
+    <path
+        android:fillColor="#333333"
+        android:pathData="M221,231L291,231A6,6 0 0,1 297,237L297,237A6,6 0 0,1 291,243L221,243A6,6 0 0,1 215,237L215,237A6,6 0 0,1 221,231z" />
+    <path
+        android:fillColor="#333333"
+        android:pathData="M221,246L291,246A6,6 0 0,1 297,252L297,252A6,6 0 0,1 291,258L221,258A6,6 0 0,1 215,252L215,252A6,6 0 0,1 221,246z" />
+    <path
+        android:fillColor="#333333"
+        android:pathData="M221,261L271,261A6,6 0 0,1 277,267L277,267A6,6 0 0,1 271,273L221,273A6,6 0 0,1 215,267L215,267A6,6 0 0,1 221,261z" />
+
+    <!-- MTG text -->
+    <path
+        android:fillColor="#333333"
+        android:pathData="M236.31,286L249.19,286L249.19,290.54L242.75,290.54L242.75,293.56L248.49,293.56L248.49,298.06L242.75,298.06L242.75,306L236.31,306ZM258.01,286L264.45,286L270.35,306L263.81,306L262.87,303.08L259.53,303.08L258.65,306L252.15,306ZM260.49,298.96L261.97,298.96L261.23,296.4ZM276.49,286L282.93,286L286.85,295.28L286.91,295.28L286.91,286L293.35,286L293.35,306L286.91,306L282.99,296.72L282.93,296.72L282.93,306L276.49,306Z" />
+
+    <!-- Outer border -->
+    <path
+        android:strokeColor="#444444"
+        android:strokeWidth="8"
+        android:pathData="M256,16A240,240 0 1,1 16,256A240,240 0 0,1 256,16z"
+        android:fillColor="#00000000" />
+</vector>

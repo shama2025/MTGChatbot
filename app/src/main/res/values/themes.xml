@@ -1,5 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <style name="Base.Theme.MyMTGChatbot" parent="Theme.AppCompat">
+        <!-- Customize your light theme here. -->
+        <!-- <item name="colorPrimary">@color/my_light_primary</item> -->
+    </style>
 
-    <style name="Theme.MyMTGChatbot" parent="android:Theme.Material.Light.NoActionBar" />
 </resources>

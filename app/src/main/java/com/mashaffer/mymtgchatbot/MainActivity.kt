@@ -14,12 +14,14 @@ import android.util.LruCache
 import android.util.Log
 import android.view.KeyEvent
 import android.view.MotionEvent
+import android.widget.Button
 import android.widget.EditText
 import android.widget.ImageButton
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.appcompat.app.AlertDialog
 import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -31,6 +33,7 @@ class MainActivity : ComponentActivity() {
     private val micBtn: ImageButton by lazy { findViewById(R.id.micBtn) }
     private val userTextInput: EditText by lazy { findViewById(R.id.cardInput) }
     private val recyclerView: RecyclerView by lazy { findViewById(R.id.chatRoom) }
+    private val phraseBtn: Button by lazy {findViewById(R.id.phraseBtn)}
 
     // Extra Variables
     private lateinit var requestPermissionLauncher: ActivityResultLauncher<String>
@@ -78,10 +81,24 @@ class MainActivity : ComponentActivity() {
 
     // Initialize function
     private fun initMainActivity() {
+        displayPhrasesKey()
         requestPermissions()
         onSpeechListenerSetup()
         micBtnSpeechListener()
         keyboardListener()
+    }
+
+    // Displays an alert dialog to help with phrases
+    private fun displayPhrasesKey() {
+        val builder = AlertDialog.Builder(this)
+        val display = layoutInflater.inflate(R.layout.phrases_key_alert_dialog_layout,null)
+
+        phraseBtn.setOnClickListener{
+            builder.setView(display).setNegativeButton("Close"){dialog, id->
+
+            }
+            builder.show()
+        }
     }
 
     // Listener for keyboard
@@ -204,12 +221,11 @@ class MainActivity : ComponentActivity() {
         cache.put("set", data.setUri.substringAfter("/sets/"))
 
         if(!flag){
-            val manaCost = formatManaCost(data.manaCost)
             val manaColor = formatManaColor(data.colors)
 
             output = if (data.power == null && data.toughness == null || data.manaCost == " ") {
                 "The card ${data.name} has no power or toughness. " +
-                        "It has no mana cost and is in the color identity of ${data.colors}. ${data.name} has the ability ${data.oracleText}."
+                        "It has no mana cost and is in the color identity of ${manaColor}. ${data.name} has the ability ${data.oracleText}."
             } else {
                 "The card ${data.name} has a base power of ${data.power} and a base toughness of ${data.toughness}. " +
                         "It has a mana cost of ${data.manaCost}and is in the color identity of ${manaColor}. ${data.name} has the ability ${data.oracleText}."
@@ -267,41 +283,6 @@ class MainActivity : ComponentActivity() {
         val output = "This card is from the set: ${data.name}."
         Log.i(TAG, output)
         updateChat(output, question)
-    }
-
-    // Format the mana cost
-    private fun formatManaCost(manaCost: String?): String {
-        val manaCostFormat = mutableListOf<String>()
-        val splitCost = manaCost.toString().split('{', '}')
-        var output = ""
-
-        splitCost.forEach { cost ->
-            if (cost.isNotBlank()) {
-                manaCostFormat.add(cost.replace("U", "Blue ")
-                    .replace("G", "Green ")
-                    .replace("B", "Black ")
-                    .replace("R", "Red ")
-                    .replace("W", "White ")
-                    .replace("C", "Colorless ")
-                    .replace("\\\\d+","$cost colorless"))
-            }
-        }
-
-        manaCostFormat.forEachIndexed { index, cost ->
-            val isLast = index == manaCostFormat.lastIndex
-            if (isLast) {
-                output += cost.uppercase()
-            } else {
-                output += "${cost.replace("U", "Blue ")
-                    .replace("G", "Green ")
-                    .replace("B", "Black ")
-                    .replace("R", "Red ")
-                    .replace("W", "White ")
-                    .replace("C", "Colorless ")
-                    .replace("\\\\d+","$cost colorless")}, "
-            }
-        }
-        return output
     }
 
     // Format the mana color

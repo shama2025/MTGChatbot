@@ -8,8 +8,8 @@
     <TextView
         android:id="@+id/phrasesKeyDisplay"
         android:theme="@style/Theme.AppCompat.Light.DarkActionBar"
-        android:layout_width="276dp"
-        android:layout_height="174dp"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
         android:text="Here are the phrases:\n
         \ncard name ___ => Displays the name and general info of the card\n
         \ncard rules ___ => Displays specific rulings of the card\n
@@ -17,6 +17,7 @@
         "
         android:textColor="@android:color/black"
         android:textSize="14sp"
+        android:background="@drawable/round_corners_alert_dialogs"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.444"

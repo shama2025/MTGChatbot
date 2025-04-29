@@ -4,6 +4,7 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.ImageView
 import android.widget.TextView
 import androidx.cardview.widget.CardView
 import androidx.recyclerview.widget.RecyclerView
@@ -32,6 +33,7 @@ class UserAiChatAdapter(private val chat: List<ChatMessage>) :
     inner class AIChatViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         private val aiChatBox: TextView = itemView.findViewById(R.id.aiChatBox)
         private val userChatBox: TextView = itemView.findViewById(R.id.userChatBox)
+        private val aiIcon: ImageView = itemView.findViewById(R.id.aiIcon)
 
         fun bind(message: ChatMessage) {
             Log.i(TAG, "Bind was called for: ${message.role}")
@@ -41,13 +43,15 @@ class UserAiChatAdapter(private val chat: List<ChatMessage>) :
                 Actor.AI -> {
                     aiChatBox.visibility = View.VISIBLE
                     userChatBox.visibility = View.GONE
-                    aiChatBox.text = "AI: ${message.content}"
+                    aiIcon.visibility = View.VISIBLE
+                    aiChatBox.text = message.content
                 }
 
                 Actor.USER -> {
                     userChatBox.visibility = View.VISIBLE
                     aiChatBox.visibility = View.GONE
-                    userChatBox.text = "User: ${message.content}"
+                    aiIcon.visibility = View.GONE
+                    userChatBox.text = "Me: ${message.content}"
                 }
             }
         }

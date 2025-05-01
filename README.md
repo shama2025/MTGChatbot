@@ -52,5 +52,5 @@ In order to run the app using Android Studio you will need to [create an AVD](ht
 
 Then you need to click the run button found at the top of the IDE, it may take a few moments but once it runs your UI should look similar to the image below
 
-![appMainActivity](assets/appMainActivity.png)
+![appMainActivity](assets/appMainActivity.gif)
 

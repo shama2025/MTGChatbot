@@ -1,4 +1,4 @@
-# MYGChatbot
+# MTGChatbot
 
 ## Purpose
 This purpose of this project was to build a model that utilized some form of Aritificial Intelligence. For this case, the app is a Magic the Gathering Chat bot that will inform the user about general card data, specific rules for the card, and which set the card is present in.

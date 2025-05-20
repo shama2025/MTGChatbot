@@ -290,14 +290,14 @@ class MainActivity : ComponentActivity() {
         if (data.moreData.isEmpty()) {
             Log.i(TAG, "No rulings available")
             updateChat("No rulings available", question)
+        }else{
+            var output = "The rulings are: "
+            data.moreData.forEach { ruling ->
+                output += ruling.comment
+            }
+            Log.i(TAG, "Output for rules: $output")
+            updateChat(output, question)
         }
-
-        var output = "The rulings are: "
-        data.moreData.forEach { ruling ->
-            output += ruling.comment
-        }
-        Log.i(TAG, "Output for rules: $output")
-        updateChat(output, question)
     }
 
     // Handle the card set data response

@@ -1,7 +1,6 @@
 package com.mashaffer.mymtgchatbot
 
-import Card
-import Rulings
+
 import android.util.Log
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel

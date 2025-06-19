@@ -7,11 +7,12 @@ import android.annotation.SuppressLint
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Bundle
+import android.os.CountDownTimer
 import android.speech.RecognitionListener
 import android.speech.RecognizerIntent
 import android.speech.SpeechRecognizer
-import android.util.LruCache
 import android.util.Log
+import android.util.LruCache
 import android.view.KeyEvent
 import android.view.MotionEvent
 import android.widget.Button
@@ -23,10 +24,14 @@ import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AlertDialog
 import androidx.core.content.ContextCompat
+import androidx.lifecycle.Observer
+import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import androidx.lifecycle.ViewModelProvider
-import androidx.lifecycle.Observer
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
+
 
 class MainActivity : ComponentActivity() {
     // UI variables
@@ -73,7 +78,7 @@ class MainActivity : ComponentActivity() {
         util.cardRuleData.observe(this, Observer { data ->
             if (data?.rulings != null) {
                 data.let {
-                    it.rulings?.let { it1 -> handleCardRuleData(it1, it.userQuery) }
+                    it.rulings?.let { it1 -> handleCardRuleData(it.rulings, it.userQuery) }
                 }
             } else {
                 apiErrorPopUp()
@@ -85,7 +90,7 @@ class MainActivity : ComponentActivity() {
         util.cardSetData.observe(this, Observer { data ->
             if (data?.set != null) {
                 data.let {
-                    it.set?.let { it1 -> handleCardSetData(it1, it.userQuery) }
+                    it.set?.let { it1 -> handleCardSetData(it.set, it.userQuery) }
                 }
             } else {
                 apiErrorPopUp()
@@ -210,18 +215,62 @@ class MainActivity : ComponentActivity() {
                 val cardName = match?.groupValues?.get(1)?.trim()
                 Log.i(TAG, "Result after regex card rules filter: $cardName")
                 util.getCardData(cardName, question, true)
-                cache.get("ruling")?.let { util.getCardRuleData(it, question) }
+                waitForCacheAndProceedRules(question)
             }
 
             cardSetQuestion.matchEntire(question) != null -> {
                 val match = cardSetQuestion.find(question)
                 val cardName = match?.groupValues?.get(1)?.trim()
-                Log.i(TAG, "Result after regex card set filter: $cardName")
                 util.getCardData(cardName, question, true)
-                cache.get("set")?.let { util.getCardSetData(it, question) }
+               waitForCacheAndProceedSet(question)
             }
         }
     }
+
+    // Waits for ruling cache to be non-null
+    fun waitForCacheAndProceedRules(question: String) {
+        lifecycleScope.launch {
+            val maxWaitTime = 5000L // max 5 seconds
+            val startTime = System.currentTimeMillis()
+            val delayInterval = 100L
+
+            while (cache.get("ruling") == null && System.currentTimeMillis() - startTime < maxWaitTime) {
+                // Show progress bar if needed
+                delay(delayInterval)
+            }
+
+            val ruling = cache.get("ruling")
+            if (ruling != null) {
+                util.getCardRuleData(ruling, question)
+            } else {
+                // Timeout handling
+                Log.e(TAG, "Timed out waiting for cache to be populated.")
+            }
+        }
+    }
+
+    // Waits for set in L1 cache to be non-null
+    fun waitForCacheAndProceedSet(question: String) {
+        lifecycleScope.launch {
+            val maxWaitTime = 5000L // max 5 seconds
+            val startTime = System.currentTimeMillis()
+            val delayInterval = 100L
+
+            while (cache.get("ruling") == null && System.currentTimeMillis() - startTime < maxWaitTime) {
+                // Show progress bar if needed
+                delay(delayInterval)
+            }
+
+            val ruling = cache.get("set")
+            if (ruling != null) {
+                util.getCardSetData(ruling, question)
+            } else {
+                // Timeout handling
+                Log.e(TAG, "Timed out waiting for cache to be populated.")
+            }
+        }
+    }
+
 
     // Request microphone permission
     private fun requestPermissions() {

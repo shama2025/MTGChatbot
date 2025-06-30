@@ -1,7 +1,14 @@
 package com.mashaffer.mymtgchatbot
 
 // Data class for card set response
-data class CardSetResponse(
-    val set: CardSet?,
-    val userQuery: String?
-)
+sealed class SetResponse{
+    data class SetData(
+        val set: CardSet?,
+        val userQuery: String?
+    ): SetResponse()
+    data class SetError(
+        val errorMsg: String,
+        val userQuery: String?
+    ): SetResponse()
+}
+

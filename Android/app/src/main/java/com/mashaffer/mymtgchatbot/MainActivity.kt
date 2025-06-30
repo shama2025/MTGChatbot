@@ -6,9 +6,7 @@ import android.Manifest
 import android.annotation.SuppressLint
 import android.content.Intent
 import android.content.pm.PackageManager
-import android.media.Image
 import android.os.Bundle
-import android.os.CountDownTimer
 import android.speech.RecognitionListener
 import android.speech.RecognizerIntent
 import android.speech.SpeechRecognizer
@@ -16,8 +14,6 @@ import android.util.Log
 import android.util.LruCache
 import android.view.KeyEvent
 import android.view.MotionEvent
-import android.view.ViewGroup
-import android.widget.Button
 import android.widget.EditText
 import android.widget.ImageButton
 import android.widget.Toast
@@ -39,7 +35,6 @@ class MainActivity : ComponentActivity() {
     // UI variables
     private val micBtn: ImageButton by lazy { findViewById(R.id.micBtn) }
     private val userTextInput: EditText by lazy { findViewById(R.id.cardInput) }
-    private val recyclerView: RecyclerView by lazy { findViewById(R.id.chatRoom) }
     private val phraseBtn: ImageButton by lazy { findViewById(R.id.phraseBtn) }
 
     // Extra Variables
@@ -47,6 +42,8 @@ class MainActivity : ComponentActivity() {
     private var speechRecognizer: SpeechRecognizer? = null
     private lateinit var util: Util
     private var chat = mutableListOf<ChatMessage>()
+    lateinit var recyclerView: RecyclerView
+    lateinit var chatAdapter: UserAiChatAdapter
 
     // Companion Object
     companion object {
@@ -66,38 +63,71 @@ class MainActivity : ComponentActivity() {
 
         // Observe the LiveData for card data
         util.cardData.observe(this, Observer { data ->
-            if (data.card != null) {
-                data.let {
-                    it.card?.let { it1 -> handleCardData(it1, it.question, it.additionalInfo) }
+            when (data) {
+                is CardResponse.CardData -> {
+                    // Success case, pass the card, question, additionalInfo
+                    handleCardData(data.card, data.question, data.additionalInfo)
                 }
-            } else {
-                apiErrorPopUp()
+                is CardResponse.CardError -> {
+                    // Error case, you can handle error message and question here
+                    Log.e(TAG, "API Error: ${data.errorMsg}")
+                    // Optionally, update chat with error or show error popup
+                    updateChat("Error: ${data.errorMsg}", data.question)
+                }
+                null -> {
+                    // Optionally handle null case if LiveData can emit null
+                    Log.e(TAG, "cardData emitted null")
+                }
             }
-
         })
 
-        // Observe the LiveData for rule data
+// Observe the LiveData for rule data
         util.cardRuleData.observe(this, Observer { data ->
-            if (data?.rulings != null) {
-                data.let {
-                    it.rulings?.let { it1 -> handleCardRuleData(it.rulings, it.userQuery) }
+            when (data) {
+                is RulingResponse.RulingData -> {
+                    if (data.rulings != null) {
+                        handleCardRuleData(data.rulings, data.userQuery)
+                    } else {
+                        apiErrorPopUp()
+                    }
                 }
-            } else {
-                apiErrorPopUp()
+                is RulingResponse.RulingError -> {
+                    Log.e(TAG, "Rule API error: ${data.errorMsg}")
+                    apiErrorPopUp()
+                    // Or updateChat("Error: ${data.errorMsg}", data.userQuery)
+                }
+                null -> {
+                    apiErrorPopUp()
+                }
             }
-
         })
 
-        // Observe the LiveData for set data
+// Observe the LiveData for set data
         util.cardSetData.observe(this, Observer { data ->
-            if (data?.set != null) {
-                data.let {
-                    it.set?.let { it1 -> handleCardSetData(it.set, it.userQuery) }
+            when (data) {
+                is SetResponse.SetData -> {
+                    if (data.set != null) {
+                        handleCardSetData(data.set, data.userQuery)
+                    } else {
+                        apiErrorPopUp()
+                    }
                 }
-            } else {
-                apiErrorPopUp()
+                is SetResponse.SetError -> {
+                    Log.e(TAG, "Set API error: ${data.errorMsg}")
+                    apiErrorPopUp()
+                    // Or updateChat("Error: ${data.errorMsg}", data.userQuery)
+                }
+                null -> {
+                    apiErrorPopUp()
+                }
             }
         })
+
+
+        recyclerView = findViewById<RecyclerView>(R.id.chatRoom)
+        chatAdapter = UserAiChatAdapter()
+        recyclerView.adapter = chatAdapter
+        recyclerView.layoutManager = LinearLayoutManager(this)
     }
 
     // Displays Error message when API fails
@@ -295,17 +325,17 @@ class MainActivity : ComponentActivity() {
     }
 
     // Handle the card data response
-    private fun handleCardData(data: Card, question: String?, flag: Boolean) {
+    private fun handleCardData(data: Card?, question: String?, flag: Boolean) {
         var output = ""
 
-        cache.put("ruling", data.rulingsUri.substringAfter("/cards/").substringBefore("/rulings"))
-        cache.put("set", data.setUri.substringAfter("/sets/"))
+        cache.put("ruling", data?.rulingsUri?.substringAfter("/cards/")?.substringBefore("/rulings"))
+        cache.put("set", data?.setUri?.substringAfter("/sets/"))
 
         if (!flag) {
-            val manaColor = formatManaColor(data.colors)
+            val manaColor = formatManaColor(data?.colors)
 
-            output = if (data.power == null && data.toughness == null || data.manaCost == " ") {
-                "The card ${data.name} has no power or toughness. " + "It has no mana cost and is in the color identity of ${manaColor}. ${data.name} has the ability ${data.oracleText}."
+            output = if (data?.power == null && data?.toughness == null || data.manaCost == " ") {
+                "The card ${data?.name} has no power or toughness. " + "It has no mana cost and is in the color identity of ${manaColor}. ${data?.name} has the ability ${data?.oracleText}."
             } else {
                 "The card ${data.name} has a base power of ${data.power} and a base toughness of ${data.toughness}. " + "It has a mana cost of ${data.manaCost}and is in the color identity of ${manaColor}. ${data.name} has the ability ${data.oracleText}."
             }
@@ -322,17 +352,29 @@ class MainActivity : ComponentActivity() {
     }
 
     // Updates the UI
-    private fun updateChat(aiResponse: String, userQuery: String?) {
-        // Add users question to list
-        userQuery?.let { ChatMessage(Actor.USER, it) }?.let { chat.add(it) }
+//    fun updateChat(aiResponse: String, userQuery: String?) {
+//        // Add users question to list
+//        userQuery?.let { ChatMessage(Actor.USER, it) }?.let { chat.add(it) }
+//
+//        // Add Ai response
+//        chat.add(ChatMessage(Actor.AI, aiResponse))
+//
+//        Log.i(TAG, "Updated chat array: $chat")
+//
+//
+//    }
 
-        // Add Ai response
-        chat.add(ChatMessage(Actor.AI, aiResponse))
+        fun updateChat(aiResponse: String, userQuery: String?) {
+            userQuery?.let {
+                val userMessage = ChatMessage(Actor.USER, it)
+                chatAdapter.addMessage(userMessage)
+            }
 
-        Log.i(TAG, "Updated chat array: $chat")
-        recyclerView.layoutManager = LinearLayoutManager(this)
-        recyclerView.adapter = UserAiChatAdapter(chat)
-    }
+            val aiMessage = ChatMessage(Actor.AI, aiResponse)
+            chatAdapter.addMessage(aiMessage)
+
+            recyclerView.scrollToPosition(chatAdapter.itemCount - 1)
+        }
 
     // Handle the card rule data response
     private fun handleCardRuleData(data: Rulings, question: String?) {

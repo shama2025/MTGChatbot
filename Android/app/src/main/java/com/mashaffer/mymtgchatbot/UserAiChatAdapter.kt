@@ -6,19 +6,20 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.TextView
-import androidx.cardview.widget.CardView
 import androidx.recyclerview.widget.RecyclerView
 
-class UserAiChatAdapter(private val chat: List<ChatMessage>) :
-    RecyclerView.Adapter<UserAiChatAdapter.AIChatViewHolder>() {
+class UserAiChatAdapter : RecyclerView.Adapter<UserAiChatAdapter.AIChatViewHolder>() {
 
-    companion object {
-        private const val TAG = "UserAIChatAdapter"
+    private val chat = mutableListOf<ChatMessage>()
+
+    fun addMessage(message: ChatMessage) {
+        chat.add(message)
+        notifyItemInserted(chat.size - 1)
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): AIChatViewHolder {
-        val view =
-            LayoutInflater.from(parent.context).inflate(R.layout.user_ai_chat_layout, parent, false)
+        val view = LayoutInflater.from(parent.context)
+            .inflate(R.layout.user_ai_chat_layout, parent, false)
         return AIChatViewHolder(view)
     }
 
@@ -26,7 +27,7 @@ class UserAiChatAdapter(private val chat: List<ChatMessage>) :
 
     override fun onBindViewHolder(holder: AIChatViewHolder, position: Int) {
         val message = chat[position]
-        Log.i(TAG, "Binding message: ${message.role}: ${message.content}")
+        Log.i("UserAIChatAdapter", "Binding message: ${message.role}: ${message.content}")
         holder.bind(message)
     }
 
@@ -36,9 +37,8 @@ class UserAiChatAdapter(private val chat: List<ChatMessage>) :
         private val aiIcon: ImageView = itemView.findViewById(R.id.aiIcon)
 
         fun bind(message: ChatMessage) {
-            Log.i(TAG, "Bind was called for: ${message.role}")
+            Log.i("UserAIChatAdapter", "Bind was called for: ${message.role}")
 
-            // Show/hide views based on role
             when (message.role) {
                 Actor.AI -> {
                     aiChatBox.visibility = View.VISIBLE

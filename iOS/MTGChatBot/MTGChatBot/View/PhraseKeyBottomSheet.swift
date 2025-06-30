@@ -12,13 +12,6 @@ struct PhraseKeyBottomSheet: View {
 
     var body: some View {
         ZStack {
-            LinearGradient(
-                gradient: Gradient(colors: [.white, .blue, .black, .red, .green]),
-                startPoint: .topLeading,
-                endPoint: .bottomTrailing
-            )
-            .opacity(0.25)
-            .ignoresSafeArea()
 
             VStack(alignment: .leading, spacing: 16) {
                 // Dismiss button

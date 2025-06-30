@@ -28,17 +28,19 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content">
 
+                <!-- AI Chat Bubble -->
                 <TextView
                     android:id="@+id/aiChatBox"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:background="@drawable/round_corner_chats"
-                    android:textColor="@android:color/white"
+                    android:background="@drawable/bg_ai_chat"
+                    android:textColor="@android:color/black"
                     android:textSize="16sp"
                     android:paddingStart="32dp"
                     android:paddingTop="5dp"
                     android:paddingEnd="8dp" />
 
+                <!-- AI Icon (visible now) -->
                 <ImageView
                     android:id="@+id/aiIcon"
                     android:layout_width="24dp"
@@ -58,14 +60,16 @@
             android:gravity="end"
             android:orientation="vertical">
 
+            <!-- User Chat Bubble -->
             <TextView
                 android:id="@+id/userChatBox"
                 android:layout_width="wrap_content"
-                android:padding="8dp"
-                android:textColor="@android:color/white"
-                android:background="@drawable/round_corner_chats"
-                android:textSize="16sp"
-                android:layout_height="wrap_content"/>
+                android:layout_height="wrap_content"
+                android:padding="0dp"
+                android:background="@drawable/bg_user_chat"
+                android:textColor="@android:color/black"
+                android:textSize="16sp"/>
+
         </LinearLayout>
 
     </LinearLayout>

@@ -51,7 +51,7 @@ class UserAiChatAdapter(private val chat: List<ChatMessage>) :
                     userChatBox.visibility = View.VISIBLE
                     aiChatBox.visibility = View.GONE
                     aiIcon.visibility = View.GONE
-                    userChatBox.text = "Me: ${message.content}"
+                    userChatBox.text = "User: ${message.content}"
                 }
             }
         }

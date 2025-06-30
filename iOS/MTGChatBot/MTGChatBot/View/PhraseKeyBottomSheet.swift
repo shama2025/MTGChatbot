@@ -23,6 +23,11 @@ struct PhraseKeyBottomSheet: View {
             VStack(alignment: .leading, spacing: 16) {
                 // Dismiss button
                 HStack {
+                    // Title
+                    Text("Phrase Key")
+                        .font(.title)
+                        .fontWeight(.bold)
+                        .padding(.bottom, 8)
                     Spacer()
                     Button(action: {
                         dismiss()
@@ -31,13 +36,7 @@ struct PhraseKeyBottomSheet: View {
                             .font(.title2)
                             .foregroundColor(.gray)
                     }
-                }
-
-                // Title
-                Text("Phrase Key")
-                    .font(.title)
-                    .fontWeight(.bold)
-                    .padding(.bottom, 8)
+                }.padding(.top, 10)
 
                 // Help items
                 Group {

@@ -29,6 +29,11 @@ struct ChatBoxView: View {
 
                         // AI message aligned left
                         HStack {
+                            Image("AIIcon")
+                                .resizable()
+                                .frame(width: 24, height: 24)
+                                .clipShape(Circle())
+                                .padding(.top, 12)
                             Text(chat.ai)
                                 .padding(12)
                                 .background(Color.gray.opacity(0.15))
@@ -50,7 +55,6 @@ struct ChatBoxView: View {
                 }
             }
         }
-        .frame(maxHeight: 400) // limit height so it fits nicely
     }
 }
 

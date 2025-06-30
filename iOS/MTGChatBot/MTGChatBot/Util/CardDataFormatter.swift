@@ -9,11 +9,11 @@ import Foundation
 
 class CardDataFormatter {
     func formatCardData(cardData: Card) -> String {
-        var manaColor = formatCardManaColor(manaColor: cardData.colors)
+        let manaColor = formatCardManaColor(manaColor: cardData.colors)
 
         let formattedString = (cardData.power == nil && cardData.toughness == nil) || cardData.manaCost == " " ?
-            "The card \(cardData.name) has no power or toughness. It has no mana cost and is in the color identity of \(manaColor). \(cardData.name) has the ability \(cardData.oracleText)." :
-            "The card \(cardData.name) has a base power of \(cardData.power ?? "N/A") and a base toughness of \(cardData.toughness ?? "N/A"). It has a mana cost of \(cardData.manaCost) and is in the color identity of \(manaColor). \(cardData.name) has the ability \(cardData.oracleText)."
+            "The card \(cardData.name) has no power or toughness. It has no mana cost and is in the color identity of \(manaColor). \(cardData.name) has the ability \(String(describing: cardData.oracleText))." :
+            "The card \(cardData.name) has a base power of \(cardData.power ?? "N/A") and a base toughness of \(cardData.toughness ?? "N/A"). It has a mana cost of \(String(describing: cardData.manaCost)) and is in the color identity of \(manaColor). \(cardData.name) has the ability \(String(describing: cardData.oracleText))."
 
         print(formattedString)
 
@@ -45,7 +45,9 @@ class CardDataFormatter {
     }
 
     func handleCardRulesData(rulesData: CardRules) -> String {
-        if !rulesData.hasMore {
+        print("Rules Data: \(rulesData)")
+
+        if rulesData.data.isEmpty {
             return "No rulings available"
         }
 

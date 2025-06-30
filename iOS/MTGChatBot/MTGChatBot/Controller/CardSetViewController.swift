@@ -9,7 +9,14 @@ import Foundation
 
 class CardSetViewController: ObservableObject {
     func getCardSetData(cardSetID: String) async throws -> CardSet {
-        let endpoint = "https://api.scryfall.com/sets/\(cardSetID)" // Url endpoint for activity
+        var endpoint = ""
+
+        print("Card set ID: \(cardSetID)")
+
+        if let encoded = cardSetID.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) {
+            endpoint = "https://api.scryfall.com/sets/\(encoded)"
+            print(endpoint)
+        }
 
         guard let url = URL(string: endpoint) else { // Set endpoint to be of type url
             throw SetError.invalidURL

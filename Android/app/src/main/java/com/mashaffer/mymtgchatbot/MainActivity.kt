@@ -6,6 +6,7 @@ import android.Manifest
 import android.annotation.SuppressLint
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.media.Image
 import android.os.Bundle
 import android.os.CountDownTimer
 import android.speech.RecognitionListener
@@ -15,6 +16,7 @@ import android.util.Log
 import android.util.LruCache
 import android.view.KeyEvent
 import android.view.MotionEvent
+import android.view.ViewGroup
 import android.widget.Button
 import android.widget.EditText
 import android.widget.ImageButton
@@ -38,7 +40,7 @@ class MainActivity : ComponentActivity() {
     private val micBtn: ImageButton by lazy { findViewById(R.id.micBtn) }
     private val userTextInput: EditText by lazy { findViewById(R.id.cardInput) }
     private val recyclerView: RecyclerView by lazy { findViewById(R.id.chatRoom) }
-    private val phraseBtn: Button by lazy { findViewById(R.id.phraseBtn) }
+    private val phraseBtn: ImageButton by lazy { findViewById(R.id.phraseBtn) }
 
     // Extra Variables
     private lateinit var requestPermissionLauncher: ActivityResultLauncher<String>

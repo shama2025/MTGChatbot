@@ -9,7 +9,14 @@ import Foundation
 
 class CardRulesViewController: ObservableObject {
     func getCardRulesData(cardRuleID: String) async throws -> CardRules {
-        let endpoint = "https://api.scryfall.com/cards/\(cardRuleID)/rulings" // Url endpoint for activity
+        var endpoint = ""
+
+        print("Card set ID: \(cardRuleID)")
+
+        if let encoded = cardRuleID.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) {
+            endpoint = "https://api.scryfall.com/cards/\(encoded)/rulings"
+            print(endpoint)
+        }
 
         guard let url = URL(string: endpoint) else { // Set endpoint to be of type url
             throw RulesError.invalidURL

@@ -1,5 +1,6 @@
 package com.mashaffer.mymtgchatbot
 
+import android.annotation.SuppressLint
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
@@ -36,6 +37,7 @@ class UserAiChatAdapter : RecyclerView.Adapter<UserAiChatAdapter.AIChatViewHolde
         private val userChatBox: TextView = itemView.findViewById(R.id.userChatBox)
         private val aiIcon: ImageView = itemView.findViewById(R.id.aiIcon)
 
+        @SuppressLint("SetTextI18n")
         fun bind(message: ChatMessage) {
             Log.i("UserAIChatAdapter", "Bind was called for: ${message.role}")
 

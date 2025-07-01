@@ -14,6 +14,7 @@ import android.util.Log
 import android.util.LruCache
 import android.view.KeyEvent
 import android.view.MotionEvent
+import android.view.inputmethod.EditorInfo
 import android.widget.EditText
 import android.widget.ImageButton
 import android.widget.Toast
@@ -167,10 +168,11 @@ class MainActivity : ComponentActivity() {
 
     // Listener for keyboard
     private fun keyboardListener() {
-        userTextInput.setOnEditorActionListener { textView, i, keyEvent ->
-            if (keyEvent != null && keyEvent.keyCode == KeyEvent.KEYCODE_ENTER && keyEvent.action == KeyEvent.ACTION_DOWN) {
+        userTextInput.setOnEditorActionListener { _, actionId, event ->
+            if (actionId == EditorInfo.IME_ACTION_DONE ||
+                (event != null && event.keyCode == KeyEvent.KEYCODE_ENTER && event.action == KeyEvent.ACTION_DOWN)) {
                 val userInput = userTextInput.text.toString()
-                Log.d("KeyboardListener", "User entered: $userInput")
+                Log.d(TAG, "User entered: $userInput")
                 sendData(userInput)
                 userTextInput.text.clear()
                 true
@@ -179,6 +181,7 @@ class MainActivity : ComponentActivity() {
             }
         }
     }
+
 
     // Listener for microphone button
     @SuppressLint("ClickableViewAccessibility")

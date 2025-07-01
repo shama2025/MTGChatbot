@@ -30,6 +30,9 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import androidx.core.view.WindowCompat
+import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.WindowInsetsControllerCompat
 
 
 class MainActivity : ComponentActivity() {
@@ -55,6 +58,7 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.main_activity)
+
 
         // View model for listening to saved data
         util = ViewModelProvider(this)[Util::class.java]
@@ -145,11 +149,21 @@ class MainActivity : ComponentActivity() {
 
     // Initialize function
     private fun initMainActivity() {
+        hideSystemBar(this)
         displayPhrasesKey()
         requestPermissions()
         onSpeechListenerSetup()
         micBtnSpeechListener()
         keyboardListener()
+    }
+
+    // Hides system bar on load
+    private fun hideSystemBar(activity: MainActivity){
+       val window = activity.window
+        WindowCompat.setDecorFitsSystemWindows(window, false)
+        val controller = WindowInsetsControllerCompat(window,window.decorView)
+        controller.hide(WindowInsetsCompat.Type.systemBars())
+        controller.systemBarsBehavior = WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
     }
 
     // Displays an alert dialog to help with phrases

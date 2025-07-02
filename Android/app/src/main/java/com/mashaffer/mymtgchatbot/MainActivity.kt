@@ -368,19 +368,7 @@ class MainActivity : ComponentActivity() {
         }
     }
 
-    // Updates the UI
-//    fun updateChat(aiResponse: String, userQuery: String?) {
-//        // Add users question to list
-//        userQuery?.let { ChatMessage(Actor.USER, it) }?.let { chat.add(it) }
-//
-//        // Add Ai response
-//        chat.add(ChatMessage(Actor.AI, aiResponse))
-//
-//        Log.i(TAG, "Updated chat array: $chat")
-//
-//
-//    }
-
+        // Updates the chat recylcer view
         fun updateChat(aiResponse: String, userQuery: String?) {
             userQuery?.let {
                 val userMessage = ChatMessage(Actor.USER, it)

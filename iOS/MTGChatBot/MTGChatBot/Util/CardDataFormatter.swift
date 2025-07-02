@@ -10,7 +10,7 @@ import Foundation
 class CardDataFormatter {
     func formatCardData(cardData: Card) -> String {
         let manaColor = formatCardManaColor(manaColor: cardData.colors)
-        
+
         let formattedString = (cardData.power == nil && cardData.toughness == nil) || cardData.manaCost == " " ?
             "The card \(cardData.name) has no power or toughness. It has no mana cost and is in the color identity of \(manaColor). \(cardData.name) has the ability \(String(describing: cardData.oracleText))." :
             "The card \(cardData.name) has a base power of \(cardData.power ?? "N/A") and a base toughness of \(cardData.toughness ?? "N/A"). It has a mana cost of \(String(describing: cardData.manaCost)) and is in the color identity of \(manaColor). \(cardData.name) has the ability \(String(describing: cardData.oracleText))."
@@ -32,9 +32,9 @@ class CardDataFormatter {
         if manaColor.isEmpty {
             return "Colorless"
         }
-        
+
         var mutableManaColor = manaColor
-        
+
         mutableManaColor = manaColor.map { "{\($0)}" }
 
         var output = ""
@@ -46,7 +46,7 @@ class CardDataFormatter {
                 output += "\(color), "
             }
         }
-        
+
         return output
     }
 

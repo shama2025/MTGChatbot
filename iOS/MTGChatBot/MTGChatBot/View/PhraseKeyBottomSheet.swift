@@ -12,7 +12,6 @@ struct PhraseKeyBottomSheet: View {
 
     var body: some View {
         ZStack {
-
             VStack(alignment: .leading, spacing: 16) {
                 // Dismiss button
                 HStack {

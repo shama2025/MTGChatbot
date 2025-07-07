@@ -45,109 +45,99 @@ import kotlinx.coroutines.launch
 import java.util.Locale
 
 class MainActivity : ComponentActivity() {
-    // UI variables
-    private val micBtn: ImageButton by lazy { findViewById(R.id.micBtn) }
-    private val userTextInput: EditText by lazy { findViewById(R.id.cardInput) }
-    private val phraseBtn: ImageButton by lazy { findViewById(R.id.phraseBtn) }
+    // === UI Components ===
+    private lateinit var micBtn: ImageButton
+    private lateinit var userTextInput: EditText
+    private lateinit var phraseBtn: ImageButton
 
-
-
-    // Extra Variables
+    // === Other Variables ===
     private lateinit var requestPermissionLauncher: ActivityResultLauncher<String>
     private var speechRecognizer: SpeechRecognizer? = null
     private lateinit var util: Util
-    lateinit var recyclerView: RecyclerView
-    lateinit var chatAdapter: UserAiChatAdapter
+    private lateinit var recyclerView: RecyclerView
+    private lateinit var chatAdapter: UserAiChatAdapter
 
-    // Companion Object
     companion object {
         private const val TAG = "MainActivity"
         private val cache = LruCache<String, String?>(2)
+        private const val RULING_CACHE = "ruling"
+        private const val SET_CACHE = "set"
     }
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.main_activity)
 
+        // === Initialize UI elements ===
+        micBtn = findViewById(R.id.micBtn)
+        userTextInput = findViewById(R.id.cardInput)
+        phraseBtn = findViewById(R.id.phraseBtn)
+        recyclerView = findViewById(R.id.chatRoom)
 
-        // View model for listening to saved data
+        // === ViewModel setup ===
         util = ViewModelProvider(this)[Util::class.java]
 
-        // Initialize Main activity
+        // === RecyclerView setup ===
+        chatAdapter = UserAiChatAdapter()
+        recyclerView.adapter = chatAdapter
+        recyclerView.layoutManager = LinearLayoutManager(this)
+
+        // === Core initialization ===
         initMainActivity()
 
-        // Observe the LiveData for card data
-        util.cardData.observe(this, Observer { data ->
-            when (data) {
-                is CardResponse.CardData -> {
-                    // Success case, pass the card, question, additionalInfo
-                    handleCardData(data.card, data.question, data.additionalInfo)
-                }
+        // === Observers for API responses ===
 
+        util.cardData.observe(this) { data ->
+            when (data) {
+                is CardResponse.CardData -> handleCardData(data.card, data.question, data.additionalInfo)
                 is CardResponse.CardError -> {
-                    // Error case, you can handle error message and question here
                     Log.e(TAG, "API Error: ${data.errorMsg}")
-                    // Optionally, update chat with error or show error popup
                     updateChat(data.errorMsg, data.question)
                 }
-
-                null -> {
-                    // Optionally handle null case if LiveData can emit null
-                    Log.e(TAG, "cardData emitted null")
-                }
+                null -> Log.e(TAG, "cardData emitted null")
             }
-        })
+        }
 
-// Observe the LiveData for rule data
-        util.cardRuleData.observe(this, Observer { data ->
+        util.cardRuleData.observe(this) { data ->
             when (data) {
                 is RulingResponse.RulingData -> {
                     if (data.rulings != null) {
                         handleCardRuleData(data.rulings, data.userQuery)
                     } else {
-                        //  apiErrorPopUp()
+                        // apiErrorPopUp(data.userQuery ?: "")
                     }
                 }
-
                 is RulingResponse.RulingError -> {
                     Log.e(TAG, "Rule API error: ${data.errorMsg}")
-                    //  apiErrorPopUp()
+                    // apiErrorPopUp(data.userQuery)
                     updateChat(data.errorMsg, data.userQuery)
                 }
-
                 null -> {
                     // apiErrorPopUp()
                 }
             }
-        })
+        }
 
-// Observe the LiveData for set data
-        util.cardSetData.observe(this, Observer { data ->
+        util.cardSetData.observe(this) { data ->
             when (data) {
                 is SetResponse.SetData -> {
                     if (data.set != null) {
                         handleCardSetData(data.set, data.userQuery)
                     } else {
-                        //   apiErrorPopUp()
+                        // apiErrorPopUp()
                     }
                 }
-
                 is SetResponse.SetError -> {
                     Log.e(TAG, "Set API error: ${data.errorMsg}")
-                    //apiErrorPopUp()
+                    // apiErrorPopUp()
                     updateChat(data.errorMsg, data.userQuery)
                 }
-
                 null -> {
                     // apiErrorPopUp()
                 }
             }
-        })
-
-        recyclerView = findViewById<RecyclerView>(R.id.chatRoom)
-        chatAdapter = UserAiChatAdapter()
-        recyclerView.adapter = chatAdapter
-        recyclerView.layoutManager = LinearLayoutManager(this)
+        }
     }
 
 // Used for debugging on the physical device post release
@@ -180,7 +170,7 @@ class MainActivity : ComponentActivity() {
 
     // Hides system bar on load
     private fun hideSystemBar(activity: MainActivity){
-       val window = activity.window
+        val window = activity.window
         WindowCompat.setDecorFitsSystemWindows(window, false)
         val controller = WindowInsetsControllerCompat(window, window.decorView)
         controller.hide(WindowInsetsCompat.Type.systemBars())
@@ -195,8 +185,8 @@ class MainActivity : ComponentActivity() {
             val display = layoutInflater.inflate(R.layout.phrases_key_alert_dialog_layout, null)
 
             builder.setView(display).setNegativeButton("Close") { dialog, _ ->
-                    dialog.dismiss()
-                }.show()
+                dialog.dismiss()
+            }.show()
         }
     }
 
@@ -292,7 +282,7 @@ class MainActivity : ComponentActivity() {
                 val match = cardSetQuestion.find(question)
                 val cardName = match?.groupValues?.get(1)?.trim()
                 util.getCardData(cardName, question, true)
-               waitForCacheAndProceedSet(question)
+                waitForCacheAndProceedSet(question)
             }
         }
     }
@@ -304,12 +294,14 @@ class MainActivity : ComponentActivity() {
             val startTime = System.currentTimeMillis()
             val delayInterval = 100L
 
-            while (cache.get("ruling") == null && System.currentTimeMillis() - startTime < maxWaitTime) {
+            val tmpCache = cache.get(RULING_CACHE)
+
+            while (cache.get(RULING_CACHE) == tmpCache && System.currentTimeMillis() - startTime < maxWaitTime) {
                 // Show progress bar if needed
                 delay(delayInterval)
             }
 
-            val ruling = cache.get("ruling")
+            val ruling = cache.get(RULING_CACHE)
             if (ruling != null) {
                 util.getCardRuleData(ruling, question)
             } else {
@@ -326,14 +318,16 @@ class MainActivity : ComponentActivity() {
             val startTime = System.currentTimeMillis()
             val delayInterval = 100L
 
-            while (cache.get("ruling") == null && System.currentTimeMillis() - startTime < maxWaitTime) {
+            val tmpCache = cache.get(RULING_CACHE)
+
+            while (cache.get(SET_CACHE) == tmpCache && System.currentTimeMillis() - startTime < maxWaitTime ) {
                 // Show progress bar if needed
                 delay(delayInterval)
             }
 
-            val ruling = cache.get("set")
-            if (ruling != null) {
-                util.getCardSetData(ruling, question)
+            val set = cache.get(SET_CACHE)
+            if (set != null) {
+                util.getCardSetData(set, question)
             } else {
                 // Timeout handling
                 Log.e(TAG, "Timed out waiting for cache to be populated.")
@@ -366,8 +360,12 @@ class MainActivity : ComponentActivity() {
     private fun handleCardData(data: Card?, question: String?, flag: Boolean) {
         var output = ""
 
-        cache.put("ruling", data?.rulingsUri?.substringAfter("/cards/")?.substringBefore("/rulings"))
-        cache.put("set", data?.setUri?.substringAfter("/sets/"))
+        cache.put(RULING_CACHE, data?.rulingsUri?.substringAfter("/cards/")?.substringBefore("/rulings"))
+        cache.put(SET_CACHE, data?.setUri?.substringAfter("/sets/"))
+
+        Log.i(TAG, "Current Ruling Cache: ${cache.get(RULING_CACHE)}")
+        Log.i(TAG, "Current Set Cache: ${cache.get(SET_CACHE)}")
+
 
         if (!flag) {
             val manaColor = formatManaColor(data?.colors)
@@ -389,18 +387,18 @@ class MainActivity : ComponentActivity() {
         }
     }
 
-        // Updates the chat recylcer view
-        fun updateChat(aiResponse: String, userQuery: String?) {
-            userQuery?.let {
-                val userMessage = ChatMessage(Actor.USER, it)
-                chatAdapter.addMessage(userMessage)
-            }
-
-            val aiMessage = ChatMessage(Actor.AI, aiResponse)
-            chatAdapter.addMessage(aiMessage)
-
-            recyclerView.scrollToPosition(chatAdapter.itemCount - 1)
+    // Updates the chat recylcer view
+    fun updateChat(aiResponse: String, userQuery: String?) {
+        userQuery?.let {
+            val userMessage = ChatMessage(Actor.USER, it)
+            chatAdapter.addMessage(userMessage)
         }
+
+        val aiMessage = ChatMessage(Actor.AI, aiResponse)
+        chatAdapter.addMessage(aiMessage)
+
+        recyclerView.scrollToPosition(chatAdapter.itemCount - 1)
+    }
 
     // Handle the card rule data response
     private fun handleCardRuleData(data: Rulings, question: String?) {

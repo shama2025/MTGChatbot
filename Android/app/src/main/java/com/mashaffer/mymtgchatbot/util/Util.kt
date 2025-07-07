@@ -32,11 +32,11 @@ class Util : ViewModel() {
                     Log.i(TAG, "Successful API Call: ${result.body()}")
                     cardData.postValue(CardResponse.CardData(result.body(), question, fromSpeech))
                 } else {
-                    Log.i(TAG, "Error getting com.mashaffer.mymtgchatbot.model.Card Information: ${result.code()}")
-                    cardData.postValue(CardResponse.CardError("${result.code()}. com.mashaffer.mymtgchatbot.model.Card Not Found. Please check spelling.", question, fromSpeech))
+                    Log.e(TAG, "Error getting Card Information: ${result.code()}")
+                    cardData.postValue(CardResponse.CardError("${result.code()}. Card Not Found. Please check spelling.", question, fromSpeech))
                 }
             } catch (e: Exception) {
-                Log.i(TAG, "Failed API Call for General com.mashaffer.mymtgchatbot.model.Card Data: ${e.message}")
+                Log.e(TAG, "Failed API Call for General Card Data: ${e.message}")
                 cardData.postValue(CardResponse.CardError("API Error: ${e.message}", question, fromSpeech))
             }
         }
@@ -51,11 +51,11 @@ class Util : ViewModel() {
                     Log.i(TAG, "Successful com.mashaffer.mymtgchatbot.model.Card Rules API Call: ${result.body()}")
                     cardRuleData.postValue(RulingResponse.RulingData(result.body(), question))
                 } else {
-                    Log.i(TAG, "Error getting com.mashaffer.mymtgchatbot.model.Card Rules Information: ${result.code()}")
-                    cardRuleData.postValue(RulingResponse.RulingError("${result.code()}. com.mashaffer.mymtgchatbot.model.Card Not Found. Please check spelling.", question))
+                    Log.e(TAG, "Error getting Card Rules Information: ${result.code()}")
+                    cardRuleData.postValue(RulingResponse.RulingError("${result.code()}. Card Not Found. Please check spelling.", question))
                 }
             } catch (e: Exception) {
-                Log.i(TAG, "Failed API Call for Additional Rules: ${e.message}")
+                Log.e(TAG, "Failed API Call for Additional Rules: ${e.message}")
                 cardRuleData.postValue(RulingResponse.RulingError("API Error: ${e.message}", question))
             }
         }
@@ -69,11 +69,11 @@ class Util : ViewModel() {
                     Log.i(TAG, "Successful API Call: ${result.body()}")
                     cardSetData.postValue(SetResponse.SetData(result.body(), question))
                 } else {
-                    Log.i(TAG, "Error getting com.mashaffer.mymtgchatbot.model.Card Information: ${result.code()}")
-                    cardSetData.postValue(SetResponse.SetError("${result.code()}. com.mashaffer.mymtgchatbot.model.Card Not Found. Please check spelling.", question))
+                    Log.e(TAG, "Error getting Card Set Information: ${result.code()}")
+                    cardSetData.postValue(SetResponse.SetError("${result.code()}. Card Not Found. Please check spelling.", question))
                 }
             } catch (e: Exception) {
-                Log.i(TAG, "Failed API Call for Set Information: ${e.message}")
+                Log.e(TAG, "Failed API Call for Set Information: ${e.message}")
                 cardSetData.postValue(SetResponse.SetError("API Error: ${e.message}", question))
             }
         }

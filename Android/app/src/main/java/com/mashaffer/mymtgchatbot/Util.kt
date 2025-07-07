@@ -1,14 +1,10 @@
 package com.mashaffer.mymtgchatbot
 
-
-import android.annotation.SuppressLint
 import android.util.Log
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 
 class Util : ViewModel() {
     private val scryfallApi =
@@ -16,8 +12,6 @@ class Util : ViewModel() {
 
     companion object {
         private const val TAG = "Util"
-        @SuppressLint("StaticFieldLeak")
-        private val mainActivity: MainActivity = MainActivity()
     }
 
     // Exposed LiveData
@@ -34,11 +28,11 @@ class Util : ViewModel() {
                     cardData.postValue(CardResponse.CardData(result.body(), question, fromSpeech))
                 } else {
                     Log.i(TAG, "Error getting Card Information: ${result.code()}")
-                    cardData.postValue(CardResponse.CardError("Card Not Found. Please check spelling", question, fromSpeech))
+                    cardData.postValue(CardResponse.CardError("${result.code()}. Card Not Found. Please check spelling.", question, fromSpeech))
                 }
             } catch (e: Exception) {
                 Log.i(TAG, "Failed API Call for General Card Data: ${e.message}")
-                cardData.postValue(CardResponse.CardError("Card Not Found. Please check spelling", question, fromSpeech))
+                cardData.postValue(CardResponse.CardError("API Error: ${e.message}", question, fromSpeech))
             }
         }
     }
@@ -53,11 +47,11 @@ class Util : ViewModel() {
                     cardRuleData.postValue(RulingResponse.RulingData(result.body(), question))
                 } else {
                     Log.i(TAG, "Error getting Card Rules Information: ${result.code()}")
-                    cardRuleData.postValue(RulingResponse.RulingError("Card Not Found. Please check spelling", question))
+                    cardRuleData.postValue(RulingResponse.RulingError("${result.code()}. Card Not Found. Please check spelling.", question))
                 }
             } catch (e: Exception) {
                 Log.i(TAG, "Failed API Call for Additional Rules: ${e.message}")
-                cardRuleData.postValue(RulingResponse.RulingError("Card Not Found. Please check spelling", question))
+                cardRuleData.postValue(RulingResponse.RulingError("API Error: ${e.message}", question))
             }
         }
     }
@@ -71,18 +65,11 @@ class Util : ViewModel() {
                     cardSetData.postValue(SetResponse.SetData(result.body(), question))
                 } else {
                     Log.i(TAG, "Error getting Card Information: ${result.code()}")
-                    cardSetData.postValue(SetResponse.SetError("Card Not Found. Please check spelling", question))
-                    withContext(Dispatchers.Main) {
-                        mainActivity.updateChat(result.message(),question)
-                    }
+                    cardSetData.postValue(SetResponse.SetError("${result.code()}. Card Not Found. Please check spelling.", question))
                 }
             } catch (e: Exception) {
                 Log.i(TAG, "Failed API Call for Set Information: ${e.message}")
-                cardSetData.postValue(SetResponse.SetError("Card Not Found. Please check spelling", question))
-                withContext(Dispatchers.Main) {
-                    mainActivity.updateChat(e.toString(), question)
-                }
-
+                cardSetData.postValue(SetResponse.SetError("API Error: ${e.message}", question))
             }
         }
     }

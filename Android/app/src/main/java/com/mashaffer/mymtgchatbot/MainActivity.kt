@@ -4,6 +4,7 @@ import Card
 import Rulings
 import android.Manifest
 import android.annotation.SuppressLint
+import android.app.Dialog
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Bundle
@@ -17,6 +18,7 @@ import android.view.MotionEvent
 import android.view.inputmethod.EditorInfo
 import android.widget.EditText
 import android.widget.ImageButton
+import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.result.ActivityResultLauncher
@@ -40,6 +42,8 @@ class MainActivity : ComponentActivity() {
     private val micBtn: ImageButton by lazy { findViewById(R.id.micBtn) }
     private val userTextInput: EditText by lazy { findViewById(R.id.cardInput) }
     private val phraseBtn: ImageButton by lazy { findViewById(R.id.phraseBtn) }
+
+
 
     // Extra Variables
     private lateinit var requestPermissionLauncher: ActivityResultLauncher<String>
@@ -77,7 +81,7 @@ class MainActivity : ComponentActivity() {
                     // Error case, you can handle error message and question here
                     Log.e(TAG, "API Error: ${data.errorMsg}")
                     // Optionally, update chat with error or show error popup
-                    updateChat("Error: ${data.errorMsg}", data.question)
+                    updateChat(data.errorMsg, data.question)
                 }
                 null -> {
                     // Optionally handle null case if LiveData can emit null
@@ -93,16 +97,16 @@ class MainActivity : ComponentActivity() {
                     if (data.rulings != null) {
                         handleCardRuleData(data.rulings, data.userQuery)
                     } else {
-                        apiErrorPopUp()
+                      //  apiErrorPopUp()
                     }
                 }
                 is RulingResponse.RulingError -> {
                     Log.e(TAG, "Rule API error: ${data.errorMsg}")
-                    apiErrorPopUp()
-                    // Or updateChat("Error: ${data.errorMsg}", data.userQuery)
+                  //  apiErrorPopUp()
+                    updateChat(data.errorMsg, data.userQuery)
                 }
                 null -> {
-                    apiErrorPopUp()
+                   // apiErrorPopUp()
                 }
             }
         })
@@ -114,20 +118,19 @@ class MainActivity : ComponentActivity() {
                     if (data.set != null) {
                         handleCardSetData(data.set, data.userQuery)
                     } else {
-                        apiErrorPopUp()
+                     //   apiErrorPopUp()
                     }
                 }
                 is SetResponse.SetError -> {
                     Log.e(TAG, "Set API error: ${data.errorMsg}")
-                    apiErrorPopUp()
-                    // Or updateChat("Error: ${data.errorMsg}", data.userQuery)
+                    //apiErrorPopUp()
+                    updateChat(data.errorMsg, data.userQuery)
                 }
                 null -> {
-                    apiErrorPopUp()
+                   // apiErrorPopUp()
                 }
             }
         })
-
 
         recyclerView = findViewById<RecyclerView>(R.id.chatRoom)
         chatAdapter = UserAiChatAdapter()
@@ -135,17 +138,23 @@ class MainActivity : ComponentActivity() {
         recyclerView.layoutManager = LinearLayoutManager(this)
     }
 
+// Used for debugging on the physical device post release
     // Displays Error message when API fails
-    private fun apiErrorPopUp() {
-        Log.i(TAG, "Displayed API Error Popup")
-        val builder = AlertDialog.Builder(this)
-        val errorPopUp = layoutInflater.inflate(R.layout.api_error_alert_dialog, null)
-
-        builder.setView(errorPopUp).setNegativeButton("Close") { dialog, _ ->
-            dialog.dismiss()
-        }.show()
-
-    }
+//    fun apiErrorPopUp(question: String) {
+//        Log.i(TAG, "Displayed API Error Popup")
+//
+//        val builder = AlertDialog.Builder(this)
+//        val errorPopUp = layoutInflater.inflate(R.layout.api_error_alert_dialog, null)
+//
+//        val tmp = errorPopUp.findViewById<TextView>(R.id.errorPopUp)
+//        tmp.text = question
+//
+//        builder.setView(errorPopUp)
+//            .setNegativeButton("Close") { dialog, _ ->
+//                dialog.dismiss()
+//            }
+//            .show()
+//    }
 
     // Initialize function
     private fun initMainActivity() {

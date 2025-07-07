@@ -1,4 +1,4 @@
-package com.mashaffer.mymtgchatbot
+package com.mashaffer.mymtgchatbot.chat
 
 // Data class to hold chat messages
 data class ChatMessage(

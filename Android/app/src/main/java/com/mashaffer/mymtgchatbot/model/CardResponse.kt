@@ -1,6 +1,4 @@
-package com.mashaffer.mymtgchatbot
-
-import Card
+package com.mashaffer.mymtgchatbot.model
 
 // Data class for card response
 sealed class CardResponse{

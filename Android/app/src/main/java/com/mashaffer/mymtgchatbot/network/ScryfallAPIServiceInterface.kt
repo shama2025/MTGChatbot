@@ -1,7 +1,8 @@
-package com.mashaffer.mymtgchatbot
+package com.mashaffer.mymtgchatbot.network
 
-import Card
+import com.mashaffer.mymtgchatbot.model.Card
 import Rulings
+import com.mashaffer.mymtgchatbot.model.CardSet
 import retrofit2.Response
 import retrofit2.http.GET
 import retrofit2.http.Path
@@ -16,7 +17,7 @@ interface ScryfallAPIServiceInterface {
     @GET("/cards/{id}/rulings")
     suspend fun getCardRuleData(@Path ("id") id: String): Response<Rulings>
 
-    // Route to get Card Set information
+    // Route to get com.mashaffer.mymtgchatbot.model.Card Set information
     @GET("/sets/{id}")
     suspend fun getCardSetData(@Path ("id") id:String): Response<CardSet>
 }

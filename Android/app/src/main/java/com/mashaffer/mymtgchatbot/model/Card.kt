@@ -1,3 +1,5 @@
+package com.mashaffer.mymtgchatbot.model
+
 import com.google.gson.annotations.SerializedName
 
 // Data class for response from scryfall

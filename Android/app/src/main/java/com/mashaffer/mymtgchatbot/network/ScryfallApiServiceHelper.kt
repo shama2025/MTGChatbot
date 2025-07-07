@@ -1,4 +1,4 @@
-package com.mashaffer.mymtgchatbot
+package com.mashaffer.mymtgchatbot.network
 
 import okhttp3.OkHttpClient
 import retrofit2.Retrofit

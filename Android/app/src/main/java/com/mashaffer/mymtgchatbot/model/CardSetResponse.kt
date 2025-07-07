@@ -1,4 +1,4 @@
-package com.mashaffer.mymtgchatbot
+package com.mashaffer.mymtgchatbot.model
 
 // Data class for card set response
 sealed class SetResponse{

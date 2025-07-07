@@ -1,4 +1,4 @@
-package com.mashaffer.mymtgchatbot
+package com.mashaffer.mymtgchatbot.ui
 
 import android.annotation.SuppressLint
 import android.util.Log
@@ -8,6 +8,9 @@ import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
+import com.mashaffer.mymtgchatbot.R
+import com.mashaffer.mymtgchatbot.chat.Actor
+import com.mashaffer.mymtgchatbot.chat.ChatMessage
 
 class UserAiChatAdapter : RecyclerView.Adapter<UserAiChatAdapter.AIChatViewHolder>() {
 

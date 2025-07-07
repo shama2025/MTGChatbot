@@ -1,10 +1,8 @@
-package com.mashaffer.mymtgchatbot
+package com.mashaffer.mymtgchatbot.ui
 
-import Card
 import Rulings
 import android.Manifest
 import android.annotation.SuppressLint
-import android.app.Dialog
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Bundle
@@ -18,24 +16,33 @@ import android.view.MotionEvent
 import android.view.inputmethod.EditorInfo
 import android.widget.EditText
 import android.widget.ImageButton
-import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AlertDialog
 import androidx.core.content.ContextCompat
+import androidx.core.view.WindowCompat
+import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.WindowInsetsControllerCompat
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.mashaffer.mymtgchatbot.R
+import com.mashaffer.mymtgchatbot.ui.UserAiChatAdapter
+import com.mashaffer.mymtgchatbot.util.Util
+import com.mashaffer.mymtgchatbot.chat.Actor
+import com.mashaffer.mymtgchatbot.chat.ChatMessage
+import com.mashaffer.mymtgchatbot.model.Card
+import com.mashaffer.mymtgchatbot.model.CardResponse
+import com.mashaffer.mymtgchatbot.model.CardSet
+import com.mashaffer.mymtgchatbot.model.RulingResponse
+import com.mashaffer.mymtgchatbot.model.SetResponse
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import androidx.core.view.WindowCompat
-import androidx.core.view.WindowInsetsCompat
-import androidx.core.view.WindowInsetsControllerCompat
-
+import java.util.Locale
 
 class MainActivity : ComponentActivity() {
     // UI variables
@@ -49,7 +56,6 @@ class MainActivity : ComponentActivity() {
     private lateinit var requestPermissionLauncher: ActivityResultLauncher<String>
     private var speechRecognizer: SpeechRecognizer? = null
     private lateinit var util: Util
-    private var chat = mutableListOf<ChatMessage>()
     lateinit var recyclerView: RecyclerView
     lateinit var chatAdapter: UserAiChatAdapter
 
@@ -77,12 +83,14 @@ class MainActivity : ComponentActivity() {
                     // Success case, pass the card, question, additionalInfo
                     handleCardData(data.card, data.question, data.additionalInfo)
                 }
+
                 is CardResponse.CardError -> {
                     // Error case, you can handle error message and question here
                     Log.e(TAG, "API Error: ${data.errorMsg}")
                     // Optionally, update chat with error or show error popup
                     updateChat(data.errorMsg, data.question)
                 }
+
                 null -> {
                     // Optionally handle null case if LiveData can emit null
                     Log.e(TAG, "cardData emitted null")
@@ -97,16 +105,18 @@ class MainActivity : ComponentActivity() {
                     if (data.rulings != null) {
                         handleCardRuleData(data.rulings, data.userQuery)
                     } else {
-                      //  apiErrorPopUp()
+                        //  apiErrorPopUp()
                     }
                 }
+
                 is RulingResponse.RulingError -> {
                     Log.e(TAG, "Rule API error: ${data.errorMsg}")
-                  //  apiErrorPopUp()
+                    //  apiErrorPopUp()
                     updateChat(data.errorMsg, data.userQuery)
                 }
+
                 null -> {
-                   // apiErrorPopUp()
+                    // apiErrorPopUp()
                 }
             }
         })
@@ -118,16 +128,18 @@ class MainActivity : ComponentActivity() {
                     if (data.set != null) {
                         handleCardSetData(data.set, data.userQuery)
                     } else {
-                     //   apiErrorPopUp()
+                        //   apiErrorPopUp()
                     }
                 }
+
                 is SetResponse.SetError -> {
                     Log.e(TAG, "Set API error: ${data.errorMsg}")
                     //apiErrorPopUp()
                     updateChat(data.errorMsg, data.userQuery)
                 }
+
                 null -> {
-                   // apiErrorPopUp()
+                    // apiErrorPopUp()
                 }
             }
         })
@@ -170,7 +182,7 @@ class MainActivity : ComponentActivity() {
     private fun hideSystemBar(activity: MainActivity){
        val window = activity.window
         WindowCompat.setDecorFitsSystemWindows(window, false)
-        val controller = WindowInsetsControllerCompat(window,window.decorView)
+        val controller = WindowInsetsControllerCompat(window, window.decorView)
         controller.hide(WindowInsetsCompat.Type.systemBars())
         controller.systemBarsBehavior = WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
     }
@@ -231,7 +243,7 @@ class MainActivity : ComponentActivity() {
         intent.putExtra(
             RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM
         )
-        intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE, java.util.Locale.getDefault())
+        intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE, Locale.getDefault())
 
         speechRecognizer?.setRecognitionListener(object : RecognitionListener {
             override fun onReadyForSpeech(bundle: Bundle) {}

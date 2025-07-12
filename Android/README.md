@@ -1,56 +1,75 @@
-# MTGChatbot
+MTGChatbot (Android)
 
-## Purpose
-This purpose of this project was to build a model that utilized some form of Aritificial Intelligence. For this case, the app is a Magic the Gathering Chat bot that will inform the user about general card data, specific rules for the card, and which set the card is present in.
+🤖 Purpose
 
-## Required Software
-In order to edit this app you will need [Android Studio](https://developer.android.com/studio?gad_source=1&gbraid=0AAAAAC-IOZkRzVkn0T9vu-nf8JLBf_Npv&gclid=CjwKCAjwn6LABhBSEiwAsNJrjsjog51mW--a_QL9c6xkyRMb3EgyC82dCQrEod5DDqDwcQY-nwiChhoC7uMQAvD_BwE&gclsrc=aw.ds) and [Git](https://git-scm.com/).
+MTGChatBot is an AI-powered chatbot designed for Magic: The Gathering players. The app provides users with general card information, set availability, and card rulings and interactions. It uses the public Scryfall API to retrieve real-time data. Users can interact using both text and voice input, allowing hands-free access to MTG card knowledge.
 
-## Project Setup
-To edit the project you will need to clone/fork the repositor
-```sh
-git clone https://github.com/shama2025/MTGChatbot.git
-```
-```sh
-git fork https://github.com/shama2025/MTGChatbot.git
-```
-The file hirearchy should look like this:
-```
-MTGChatbotProject/
-├── app/                                        # Android app module (source code, resources)
-│   └── ...                                    # Contains src/, res/, AndroidManifest.xml, etc.
-├── gradle/                                    # Gradle wrapper config
-│   └── ...                                    # Wrapper JAR and properties
-├── .gitignore                                 # Git ignored files
-├── README.md                                  # Project description
-├── build.gradle.kts                           # Top-level Gradle script (Kotlin DSL)
-├── gradle.properties                          # Gradle project settings
-├── gradlew                                    # Gradle wrapper script (Unix)
-├── gradlew.bat                                # Gradle wrapper script (Windows)
-├── settings.gradle.kts                        # Gradle module definitions
-├── src/                                       # Main source directory for the app
-│   ├── main/                                  # Main application code
-│   │   ├── java/com/mashaffer/mymtgchatbot/   # Your app's Kotlin/Java code
-│   │   └── res/                               # App resources like layouts, drawables, etc.
-│   │       ├── drawable/                      # Images and icons
-│   │       │   └── ic_launcher-playstore.png  # Play Store launcher icon
-│   │       ├── layout/                        # XML layouts
-│   │       ├── values/                        # Values like colors, strings, styles
-│   │       └── ...                            # Other resource types (e.g., mipmaps)
-│   ├── androidTest/                           # Instrumented tests (runs on Android device/emulator)
-│   │   └── java/com/mashaffer/mymtgchatbot/   # UI and instrumentation tests
-│   ├── test/                                  # Unit tests (runs on JVM)
-│   │   └── java/com/mashaffer/mymtgchatbot/   # Unit test classes
-├── AndroidManifest.xml                        # The Android manifest file
+💻 Required Software
 
-```
+To run or edit the project, install the following:
+- Android Studio: https://developer.android.com/studio?gad_source=1&gbraid=0AAAAAC-IOZkRzVkn0T9vu-nf8JLBf_Npv&gclid=CjwKCAjwn6LABhBSEiwAsNJrjsjog51mW--a_QL9c6xkyRMb3EgyC82dCQrEod5DDqDwcQY-nwiChhoC7uMQAvD_BwE&gclsrc=aw.ds
+- Git: https://git-scm.com/
 
-Once here the res directory and main directory will house the kotlin and xml files needed to update the view and functionalty
+🛠 Project Setup
 
-## Running App
-In order to run the app using Android Studio you will need to [create an AVD](https://developer.android.com/studio/run/managing-avds) or [pair your samsung phone with Android Studio](https://developer.android.com/codelabs/basic-android-kotlin-compose-connect-device#0)
+To get started, fork the repository and clone your fork:
 
-Then you need to click the run button found at the top of the IDE, it may take a few moments but once it runs your UI should look similar to the image below
+git fork https://github.com/shama2025/MTGChatbot.git  
+git clone https://github.com/YOUR-USERNAME/MTGChatbot.git  
+cd MTGChatbotProject
+
+📂 Project Structure
+
+MTGChatbotProject/  
+├── app/                                        # Android app module  
+│   └── ...                                     # Contains source code, resources, manifest  
+├── gradle/                                     # Gradle wrapper files  
+├── .gitignore                                  # Ignored files  
+├── README.md                                   # Project documentation  
+├── build.gradle.kts                            # Top-level Gradle config  
+├── gradle.properties                           # Project settings  
+├── gradlew / gradlew.bat                       # Gradle wrapper scripts  
+├── settings.gradle.kts                         # Module settings  
+├── src/  
+│   ├── main/  
+│   │   ├── java/com/mashaffer/mymtgchatbot/    # App logic (Kotlin)  
+│   │   └── res/                                # Resources (layouts, drawables, etc.)  
+│   │       ├── drawable/                       # App icons and images  
+│   │       │   └── ic_launcher-playstore.png  
+│   │       ├── layout/                         # UI XML layouts  
+│   │       ├── values/                         # Strings, colors, themes  
+│   │       └── ...                             # Other resources  
+│   ├── androidTest/                            # UI tests  
+│   ├── test/                                   # Unit tests  
+├── AndroidManifest.xml                         # App manifest
+
+Your main and res directories house the Kotlin source code and XML layout files needed to update the functionality and views.
+
+🔊 Voice Input Support
+
+MTGChatBot supports voice-based card search. With microphone permission enabled, the app transcribes speech into text and uses it to query the Scryfall API. No audio is recorded or stored — it’s used only for real-time search purposes.
+
+▶️ Running the App
+
+To run the app:
+
+1. Open the project in Android Studio.  
+2. Create an Android Virtual Device (AVD): https://developer.android.com/studio/run/managing-avds  
+   OR connect your Android phone: https://developer.android.com/codelabs/basic-android-kotlin-compose-connect-device#0  
+3. Click the green Run ▶️ button at the top of Android Studio.
+
+After building, your app should look something like this:
 
 ![appMainActivity](assets/appMainActivity.gif)
 
+📩 Support
+
+For questions, bugs, or feature requests, open an issue:  
+https://github.com/shama2025/MTGChatbot/issues
+
+🔐 Privacy
+
+Voice input is used for transcription only. We do not store or transmit your audio. All MTG data is fetched securely via Scryfall’s public API. See the full privacy policy:  
+https://github.com/shama2025/MTGChatbot/blob/main/PRIVACY.md
+
+© 2025 Mason Shaffer

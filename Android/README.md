@@ -72,4 +72,4 @@ https://github.com/shama2025/MTGChatbot/issues
 Voice input is used for transcription only. We do not store or transmit your audio. All MTG data is fetched securely via Scryfall’s public API. See the full privacy policy:  
 https://github.com/shama2025/MTGChatbot/blob/main/PRIVACY.md
 
-© 2025 Mason Shaffer
+© 2025 Marcus Shaffer

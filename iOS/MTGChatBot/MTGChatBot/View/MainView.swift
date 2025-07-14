@@ -72,7 +72,7 @@ struct MainView: View {
                 Image(systemName: "key.fill")
             }
             .sheet(isPresented: $isPresented) {
-                PhraseKeyBottomSheet().presentationDetents([.fraction(0.30)])
+                PhraseKeyBottomSheet().presentationDetents([.fraction(0.50)]).presentationDragIndicator(.visible).presentationCompactAdaptation(.none)
             }
             .foregroundColor(.black)
         }

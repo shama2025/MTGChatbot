@@ -1,6 +1,10 @@
 MTGChatBot (iOS)
 
-📱 Purpose
+📱 iOS App Store Store Listing:
+[https://apps.apple.com/us/app/mtg-chatbot/id6748325862](https://apps.apple.com/us/app/mtg-chatbot/id6748325862)
+
+
+🎯 Purpose
 
 MTGChatBot is an AI-powered chatbot for Magic: The Gathering players. Built for iOS, the app allows users to get quick, accurate details about MTG cards, including:
 

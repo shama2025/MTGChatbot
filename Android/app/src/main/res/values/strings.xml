@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">MyMTGChatbot</string>
+    <string name="app_name">MTG Chatbot</string>
     <string name="phrases_key">Phrase Key:\n
         \ncard name ___ => Displays the name and general info of the card\n
         \ncard rules ___ => Displays specific rulings of the card\n

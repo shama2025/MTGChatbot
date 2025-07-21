@@ -11,7 +11,7 @@ class CardViewController: ObservableObject {
     func getGenCardData(cardName: String) async throws -> Card {
         var endpoint = ""
         if let encoded = cardName.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) {
-            endpoint = "https://api.scryfall.com/cards/named?exact=\(encoded)"
+            endpoint = "https://api.scryfall.com/cards/named?fuzzy=\(encoded)"
             print(endpoint)
         }
         // Url endpoint for activity

@@ -11,7 +11,7 @@ import retrofit2.http.Query
 interface ScryfallAPIServiceInterface {
     // Route for getting card data
     @GET("/cards/named")
-    suspend fun getCardGenData(@Query("exact") cardname: String?): Response<Card>
+    suspend fun getCardGenData(@Query("fuzzy") cardname: String?): Response<Card>
 
     // Route to get card ruling
     @GET("/cards/{id}/rulings")

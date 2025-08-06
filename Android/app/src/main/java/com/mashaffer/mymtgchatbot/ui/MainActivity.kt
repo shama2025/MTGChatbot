@@ -30,6 +30,7 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.google.gson.annotations.SerializedName
 import com.mashaffer.mymtgchatbot.R
 import com.mashaffer.mymtgchatbot.ui.UserAiChatAdapter
 import com.mashaffer.mymtgchatbot.util.Util
@@ -90,11 +91,17 @@ class MainActivity : ComponentActivity() {
 
         util.cardData.observe(this) { data ->
             when (data) {
-                is CardResponse.CardData -> handleCardData(data.card, data.question, data.additionalInfo)
+                is CardResponse.CardData -> handleCardData(
+                    data.card,
+                    data.question,
+                    data.additionalInfo
+                )
+
                 is CardResponse.CardError -> {
                     Log.e(TAG, "API Error: ${data.errorMsg}")
                     updateChat(data.errorMsg, data.question)
                 }
+
                 null -> Log.e(TAG, "cardData emitted null")
             }
         }
@@ -108,11 +115,13 @@ class MainActivity : ComponentActivity() {
                         // apiErrorPopUp(data.userQuery ?: "")
                     }
                 }
+
                 is RulingResponse.RulingError -> {
                     Log.e(TAG, "Rule API error: ${data.errorMsg}")
                     // apiErrorPopUp(data.userQuery)
                     updateChat(data.errorMsg, data.userQuery)
                 }
+
                 null -> {
                     // apiErrorPopUp()
                 }
@@ -128,11 +137,13 @@ class MainActivity : ComponentActivity() {
                         // apiErrorPopUp()
                     }
                 }
+
                 is SetResponse.SetError -> {
                     Log.e(TAG, "Set API error: ${data.errorMsg}")
                     // apiErrorPopUp()
                     updateChat(data.errorMsg, data.userQuery)
                 }
+
                 null -> {
                     // apiErrorPopUp()
                 }
@@ -169,12 +180,13 @@ class MainActivity : ComponentActivity() {
     }
 
     // Hides system bar on load
-    private fun hideSystemBar(activity: MainActivity){
+    private fun hideSystemBar(activity: MainActivity) {
         val window = activity.window
         WindowCompat.setDecorFitsSystemWindows(window, false)
         val controller = WindowInsetsControllerCompat(window, window.decorView)
         controller.hide(WindowInsetsCompat.Type.systemBars())
-        controller.systemBarsBehavior = WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
+        controller.systemBarsBehavior =
+            WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
     }
 
     // Displays an alert dialog to help with phrases
@@ -195,7 +207,8 @@ class MainActivity : ComponentActivity() {
     private fun keyboardListener() {
         userTextInput.setOnEditorActionListener { _, actionId, event ->
             if (actionId == EditorInfo.IME_ACTION_DONE ||
-                (event != null && event.keyCode == KeyEvent.KEYCODE_ENTER && event.action == KeyEvent.ACTION_DOWN)) {
+                (event != null && event.keyCode == KeyEvent.KEYCODE_ENTER && event.action == KeyEvent.ACTION_DOWN)
+            ) {
                 val userInput = userTextInput.text.toString()
                 Log.d(TAG, "User entered: $userInput")
                 sendData(userInput)
@@ -320,7 +333,7 @@ class MainActivity : ComponentActivity() {
 
             val tmpCache = cache.get(RULING_CACHE)
 
-            while (cache.get(SET_CACHE) == tmpCache && System.currentTimeMillis() - startTime < maxWaitTime ) {
+            while (cache.get(SET_CACHE) == tmpCache && System.currentTimeMillis() - startTime < maxWaitTime) {
                 // Show progress bar if needed
                 delay(delayInterval)
             }
@@ -360,20 +373,23 @@ class MainActivity : ComponentActivity() {
     private fun handleCardData(data: Card?, question: String?, flag: Boolean) {
         var output = ""
 
-        cache.put(RULING_CACHE, data?.rulingsUri?.substringAfter("/cards/")?.substringBefore("/rulings"))
+        cache.put(
+            RULING_CACHE,
+            data?.rulingsUri?.substringAfter("/cards/")?.substringBefore("/rulings")
+        )
         cache.put(SET_CACHE, data?.setUri?.substringAfter("/sets/"))
 
         Log.i(TAG, "Current Ruling Cache: ${cache.get(RULING_CACHE)}")
         Log.i(TAG, "Current Set Cache: ${cache.get(SET_CACHE)}")
 
-
+        // @SerializedName("legalities") val legalities: Map<String, String>,
         if (!flag) {
             val manaColor = formatManaColor(data?.colors)
-
+            val legalities = formatLegality(data?.legalities)
             output = if (data?.power == null && data?.toughness == null || data.manaCost == " ") {
-                "The card ${data?.name} has no power or toughness. " + "It has no mana cost and is in the color identity of ${manaColor}. ${data?.name} has the ability ${data?.oracleText}."
+                "The card ${data?.name} has no power or toughness. " + "It has no mana cost and is in the color identity of ${manaColor}. ${data?.name} has the ability ${data?.oracleText} $legalities"
             } else {
-                "The card ${data.name} has a base power of ${data.power} and a base toughness of ${data.toughness}. " + "It has a mana cost of ${data.manaCost}and is in the color identity of ${manaColor}. ${data.name} has the ability ${data.oracleText}."
+                "The card ${data.name} has a base power of ${data.power} and a base toughness of ${data.toughness}. " + "It has a mana cost of ${data.manaCost}and is in the color identity of ${manaColor}.${data.name} has the ability ${data.oracleText} $legalities"
             }
 
             // Format string to handle more scryfall syntax
@@ -387,61 +403,79 @@ class MainActivity : ComponentActivity() {
         }
     }
 
-    // Updates the chat recylcer view
-    fun updateChat(aiResponse: String, userQuery: String?) {
-        userQuery?.let {
-            val userMessage = ChatMessage(Actor.USER, it)
-            chatAdapter.addMessage(userMessage)
+    private fun formatLegality(map: Map<String, String>?): String {
+        var legalityString: String = "This card is allowed in:"
+        val lastValue = map?.entries?.lastOrNull()?.key
+        Log.i(TAG,lastValue.toString())
+        map?.forEach { key, value ->
+            if (value == "legal" || value == "restricted") {
+                legalityString += if (key == lastValue) {
+                    " and $key."
+                }else{
+                    " $key,"
+                }
+                Log.i(TAG, legalityString)
+            }
         }
 
-        val aiMessage = ChatMessage(Actor.AI, aiResponse)
-        chatAdapter.addMessage(aiMessage)
-
-        recyclerView.scrollToPosition(chatAdapter.itemCount - 1)
+        return legalityString
     }
 
-    // Handle the card rule data response
-    private fun handleCardRuleData(data: Rulings, question: String?) {
-        Log.i(TAG, "Data from API for card rules data: $data")
-
-        if (data.moreData.isEmpty()) {
-            Log.i(TAG, "No rulings available")
-            updateChat("No rulings available", question)
-        }else{
-            var output = "The rulings are: "
-            data.moreData.forEach { ruling ->
-                output += ruling.comment
+        // Updates the chat recylcer view
+        fun updateChat(aiResponse: String, userQuery: String?) {
+            userQuery?.let {
+                val userMessage = ChatMessage(Actor.USER, it)
+                chatAdapter.addMessage(userMessage)
             }
-            Log.i(TAG, "Output for rules: $output")
+
+            val aiMessage = ChatMessage(Actor.AI, aiResponse)
+            chatAdapter.addMessage(aiMessage)
+
+            recyclerView.scrollToPosition(chatAdapter.itemCount - 1)
+        }
+
+        // Handle the card rule data response
+        private fun handleCardRuleData(data: Rulings, question: String?) {
+            Log.i(TAG, "Data from API for card rules data: $data")
+
+            if (data.moreData.isEmpty()) {
+                Log.i(TAG, "No rulings available")
+                updateChat("No rulings available", question)
+            } else {
+                var output = "The rulings are: "
+                data.moreData.forEach { ruling ->
+                    output += ruling.comment
+                }
+                Log.i(TAG, "Output for rules: $output")
+                updateChat(output, question)
+            }
+        }
+
+        // Handle the card set data response
+        private fun handleCardSetData(data: CardSet, question: String?) {
+            Log.i(TAG, "Data from API for card set data: $data")
+
+            val output = "This card is from the set: ${data.name}."
+            Log.i(TAG, output)
             updateChat(output, question)
         }
-    }
 
-    // Handle the card set data response
-    private fun handleCardSetData(data: CardSet, question: String?) {
-        Log.i(TAG, "Data from API for card set data: $data")
-
-        val output = "This card is from the set: ${data.name}."
-        Log.i(TAG, output)
-        updateChat(output, question)
-    }
-
-    // Format the mana color
-    private fun formatManaColor(manaColor: List<String>?): String {
-        if (manaColor.isNullOrEmpty()) {
-            return "Colorless"
-        }
-
-        var output = ""
-        manaColor.forEachIndexed { index, color ->
-            val isLast = index == manaColor.lastIndex
-            if (isLast) {
-                output += color.uppercase()
-            } else {
-                output += "$color, "
+        // Format the mana color
+        private fun formatManaColor(manaColor: List<String>?): String {
+            if (manaColor.isNullOrEmpty()) {
+                return "Colorless"
             }
+
+            var output = ""
+            manaColor.forEachIndexed { index, color ->
+                val isLast = index == manaColor.lastIndex
+                if (isLast) {
+                    output += color.uppercase()
+                } else {
+                    output += "$color, "
+                }
+            }
+            return output.replace("U", "Blue ").replace("G", "Green ").replace("B", "Black ")
+                .replace("R", "Red ").replace("W", "White ").replace("C", "Colorless ")
         }
-        return output.replace("U", "Blue ").replace("G", "Green ").replace("B", "Black ")
-            .replace("R", "Red ").replace("W", "White ").replace("C", "Colorless ")
     }
-}

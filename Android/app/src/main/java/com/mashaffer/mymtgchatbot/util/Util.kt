@@ -12,6 +12,47 @@ import com.mashaffer.mymtgchatbot.model.SetResponse
 import kotlinx.coroutines.launch
 
 class Util : ViewModel() {
+
+    private val manaColorMap: MutableMap<List<String>, String> = mutableMapOf(
+        listOf("B") to "Black",
+        listOf("G") to "Green",
+        listOf("R") to "Red",
+        listOf("U") to "Blue",
+        listOf("W") to "White",
+
+        listOf("B", "U") to "Black and Blue",
+        listOf("B", "W") to "Black and White",
+        listOf("B", "G") to "Black and Green",
+        listOf("B", "R") to "Black and Red",
+        listOf("G", "R") to "Green and Red",
+        listOf("G", "U") to "Green and Blue",
+        listOf("G", "W") to "Green and White",
+        listOf("R", "U") to "Red and Blue",
+        listOf("R", "W") to "Red and White",
+        listOf("U", "W") to "Blue and White",
+
+        listOf("B", "U", "W") to "Black, Blue, and White",
+        listOf("B", "G", "U") to "Black, Blue, and Green",
+        listOf("B", "R", "U") to "Black, Blue, and Red",
+        listOf("B", "G", "W") to "Black, White, and Green",
+        listOf("B", "R", "W") to "Black, White, and Red",
+        listOf("B", "G", "R") to "Black, Green, and Red",
+        listOf("G", "R", "U") to "Green, Red, and Blue",
+        listOf("G", "U", "W") to "Green, Blue, and White",
+        listOf("R", "U", "W") to "Red, Blue, and White",
+        listOf("G", "R", "W") to "Green, Red, and White",
+
+        listOf("B", "R", "U", "W") to "Black, Red, Blue, and White",
+        listOf("B", "G", "U", "W") to "Black, Green, Blue, and White",
+        listOf("G", "R", "U", "W") to "Green, Red, Blue, and White",
+        listOf("B", "G", "R", "W") to "Black, Green, Red, and White",
+        listOf("B", "G", "R", "U") to "Black, Green, Red, and Blue",
+
+        listOf("B", "G", "R", "U", "W") to "Black, Green, Red, Blue, and White"
+    )
+
+
+
     private val scryfallApi =
         ScryfallApiServiceHelper.getInstance().create(ScryfallAPIServiceInterface::class.java)
 
@@ -77,5 +118,9 @@ class Util : ViewModel() {
                 cardSetData.postValue(SetResponse.SetError("API Error: ${e.message}", question))
             }
         }
+    }
+
+    fun formatManaColorText( manaColor: List<String>?): String{
+        return if (manaColorMap.containsKey(manaColor)) manaColorMap[manaColor].toString() else "Colorless"
     }
 }

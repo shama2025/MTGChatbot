@@ -10,10 +10,11 @@ import Foundation
 class CardDataFormatter {
     func formatCardData(cardData: Card) -> String {
         let manaColor = formatCardManaColor(manaColor: cardData.colors)
+        let legalities = formatLegalities(cardLegalities: cardData.legalities)
 
         let formattedString = (cardData.power == nil && cardData.toughness == nil) || cardData.manaCost == " " ?
-            "The card \(cardData.name) has no power or toughness. It has no mana cost and is in the color identity of \(manaColor). \(cardData.name) has the ability \(String(describing: cardData.oracleText))." :
-            "The card \(cardData.name) has a base power of \(cardData.power ?? "N/A") and a base toughness of \(cardData.toughness ?? "N/A"). It has a mana cost of \(String(describing: cardData.manaCost)) and is in the color identity of \(manaColor). \(cardData.name) has the ability \(String(describing: cardData.oracleText))."
+            "The card \(cardData.name) has no power or toughness. It has no mana cost and is in the color identity of \(manaColor). \(cardData.name) has the ability \(String(describing: cardData.oracleText)). \(legalities)" :
+            "The card \(cardData.name) has a base power of \(cardData.power ?? "N/A") and a base toughness of \(cardData.toughness ?? "N/A"). It has a mana cost of \(String(describing: cardData.manaCost)) and is in the color identity of \(manaColor). \(cardData.name) has the ability \(String(describing: cardData.oracleText)).\(legalities)"
 
         print(formattedString)
 
@@ -23,12 +24,12 @@ class CardDataFormatter {
             .replacingOccurrences(of: "{B}", with: "Black ")
             .replacingOccurrences(of: "{R}", with: "Red ")
             .replacingOccurrences(of: "{W}", with: "White ")
-            .replacingOccurrences(of: "{U}", with: " Blue ")
+            .replacingOccurrences(of: "{U}", with: "Blue ")
             .replacingOccurrences(of: "{C}", with: "Colorless ")
     }
 
     func formatCardManaColor(manaColor: [String]) -> String {
-        print("Formatting Mana Color Called\(manaColor)")
+       // print("Formatting Mana Color Called\(manaColor)")
         if manaColor.isEmpty {
             return "Colorless"
         }
@@ -69,5 +70,22 @@ class CardDataFormatter {
         let formattedString = "This card is from the set: \(setData.name)."
 
         return formattedString
+    }
+    
+    func formatLegalities(cardLegalities: [String:String]) -> String{
+        var res = "This card is allowed in: "
+
+        let filteredKeys = cardLegalities.filter { $0.value == "legal" || $0.value == "restricted" }.map { $0.key }
+
+        for (index, key) in filteredKeys.enumerated() {
+            if index == filteredKeys.count - 1 {
+                res += "and \(key)."
+            } else {
+                res += "\(key), "
+            }
+        }
+
+        
+        return res
     }
 }

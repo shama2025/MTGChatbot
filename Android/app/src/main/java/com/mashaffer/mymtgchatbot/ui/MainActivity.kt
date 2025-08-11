@@ -384,7 +384,6 @@ class MainActivity : ComponentActivity() {
 
         // @SerializedName("legalities") val legalities: Map<String, String>,
         if (!flag) {
-            // val manaColor = formatManaColor(data?.colors)
             val manaColor = util.formatManaColorText(data?.colors)
             val legalities = formatLegality(data?.legalities)
             output = if (data?.power == null && data?.toughness == null || data.manaCost == " ") {
@@ -460,23 +459,4 @@ class MainActivity : ComponentActivity() {
             Log.i(TAG, output)
             updateChat(output, question)
         }
-
-//        // Format the mana color
-//        private fun formatManaColor(manaColor: List<String>?): String {
-//            if (manaColor.isNullOrEmpty()) {
-//                return "Colorless"
-//            }
-//
-//            var output = ""
-//            manaColor.forEachIndexed { index, color ->
-//                val isLast = index == manaColor.lastIndex
-//                if (isLast) {
-//                    output += color.uppercase()
-//                } else {
-//                    output += "$color, "
-//                }
-//            }
-//            return output.replace("U", "Blue ").replace("G", "Green ").replace("B", "Black ")
-//                .replace("R", "Red ").replace("W", "White ").replace("C", "Colorless ")
-//        }
     }

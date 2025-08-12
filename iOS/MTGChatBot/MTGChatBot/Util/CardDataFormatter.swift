@@ -12,10 +12,9 @@ class CardDataFormatter {
         let manaColor = formatCardManaColor(manaColor: cardData.colors)
         let legalities = formatLegalities(cardLegalities: cardData.legalities)
 
-        let formattedString = (cardData.power == nil && cardData.toughness == nil) || cardData.manaCost == " " ?
-            "The card \(cardData.name) has no power or toughness. It has no mana cost and is in the color identity of \(manaColor). \(cardData.name) has the ability \(String(describing: cardData.oracleText)). \(legalities)" :
-            "The card \(cardData.name) has a base power of \(cardData.power ?? "N/A") and a base toughness of \(cardData.toughness ?? "N/A"). It has a mana cost of \(String(describing: cardData.manaCost)) and is in the color identity of \(manaColor). \(cardData.name) has the ability \(String(describing: cardData.oracleText)).\(legalities)"
-
+        let formattedString = (cardData.power == "0" && cardData.toughness == "0") || cardData.manaCost == "{0}" ?
+            "The card \(cardData.name) has no power or toughness. It has no mana cost and is in the color identity of \(manaColor). \(cardData.name) has the ability \(cardData.oracleText ?? "no abilities"). \(legalities)" :
+            "The card \(cardData.name) has a base power of \(cardData.power ?? "0") and a base toughness of \(cardData.toughness ?? "0"). It has a mana cost of \(cardData.manaCost ?? "no mana cost") and is in the color identity of \(manaColor). \(cardData.name) has the ability \(cardData.oracleText ?? "no abilities"). \(legalities)"
         print(formattedString)
 
         return formattedString

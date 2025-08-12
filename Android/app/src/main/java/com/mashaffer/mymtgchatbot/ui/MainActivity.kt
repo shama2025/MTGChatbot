@@ -386,10 +386,10 @@ class MainActivity : ComponentActivity() {
         if (!flag) {
             val manaColor = util.formatManaColorText(data?.colors)
             val legalities = formatLegality(data?.legalities)
-            output = if (data?.power == null && data?.toughness == null || data.manaCost == " ") {
+            output = if (data?.power == "0" && data?.toughness == "0" || data?.manaCost == "{0}") {
                 "The card ${data?.name} has no power or toughness. " + "It has no mana cost and is in the color identity of ${manaColor}. ${data?.name} has the ability ${data?.oracleText} $legalities"
             } else {
-                "The card ${data.name} has a base power of ${data.power} and a base toughness of ${data.toughness}. " + "It has a mana cost of ${data.manaCost}and is in the color identity of ${manaColor}.${data.name} has the ability ${data.oracleText} $legalities"
+                "The card ${data?.name} has a base power of ${data?.power} and a base toughness of ${data?.toughness}. " + "It has a mana cost of ${data?.manaCost}and is in the color identity of ${manaColor}.${data?.name} has the ability ${data?.oracleText} $legalities"
             }
 
             // Format string to handle more scryfall syntax

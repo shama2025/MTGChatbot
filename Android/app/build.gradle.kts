@@ -12,8 +12,8 @@ android {
         applicationId = "com.mashaffer.mymtgchatbot"
         minSdk = 24
         targetSdk = 35
-        versionCode = 19
-        versionName = "0.1.9"
+        versionCode = 20
+        versionName = "0.2.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }

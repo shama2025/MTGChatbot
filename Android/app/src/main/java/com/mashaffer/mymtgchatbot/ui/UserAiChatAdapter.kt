@@ -6,6 +6,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
+import android.widget.ProgressBar
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import com.mashaffer.mymtgchatbot.R
@@ -39,6 +40,7 @@ class UserAiChatAdapter : RecyclerView.Adapter<UserAiChatAdapter.AIChatViewHolde
         private val aiChatBox: TextView = itemView.findViewById(R.id.aiChatBox)
         private val userChatBox: TextView = itemView.findViewById(R.id.userChatBox)
         private val aiIcon: ImageView = itemView.findViewById(R.id.aiIcon)
+        private val spinner: ProgressBar = itemView.findViewById(R.id.spinner)
 
         @SuppressLint("SetTextI18n")
         fun bind(message: ChatMessage) {
@@ -50,6 +52,7 @@ class UserAiChatAdapter : RecyclerView.Adapter<UserAiChatAdapter.AIChatViewHolde
                     userChatBox.visibility = View.GONE
                     aiIcon.visibility = View.VISIBLE
                     aiChatBox.text = message.content
+                    spinner.visibility = View.GONE
                 }
 
                 Actor.USER -> {

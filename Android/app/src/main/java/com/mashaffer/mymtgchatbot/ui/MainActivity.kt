@@ -25,14 +25,11 @@ import androidx.core.content.ContextCompat
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
-import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import com.google.gson.annotations.SerializedName
 import com.mashaffer.mymtgchatbot.R
-import com.mashaffer.mymtgchatbot.ui.UserAiChatAdapter
 import com.mashaffer.mymtgchatbot.util.Util
 import com.mashaffer.mymtgchatbot.chat.Actor
 import com.mashaffer.mymtgchatbot.chat.ChatMessage
@@ -386,10 +383,10 @@ class MainActivity : ComponentActivity() {
         if (!flag) {
             val manaColor = util.formatManaColorText(data?.colors)
             val legalities = formatLegality(data?.legalities)
-            output = if (data?.power == "0" && data?.toughness == "0" || data?.manaCost == "{0}") {
+            output = if (data?.power == null && data?.toughness == null) {
                 "The card ${data?.name} has no power or toughness. " + "It has no mana cost and is in the color identity of ${manaColor}. ${data?.name} has the ability ${data?.oracleText} $legalities"
             } else {
-                "The card ${data?.name} has a base power of ${data?.power} and a base toughness of ${data?.toughness}. " + "It has a mana cost of ${data?.manaCost}and is in the color identity of ${manaColor}.${data?.name} has the ability ${data?.oracleText} $legalities"
+                "The card ${data.name} has a base power of ${data?.power} and a base toughness of ${data?.toughness}. " + "It has a mana cost of ${data?.manaCost}and is in the color identity of ${manaColor}.${data?.name} has the ability ${data?.oracleText} $legalities"
             }
 
             // Format string to handle more scryfall syntax

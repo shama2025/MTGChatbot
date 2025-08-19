@@ -29,16 +29,32 @@
                 android:layout_height="wrap_content">
 
                 <!-- AI Chat Bubble -->
-                <TextView
-                    android:id="@+id/aiChatBox"
+                <FrameLayout
                     android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:background="@drawable/bg_ai_chat"
-                    android:textColor="@android:color/black"
-                    android:textSize="16sp"
-                    android:paddingStart="32dp"
-                    android:paddingTop="5dp"
-                    android:paddingEnd="8dp" />
+                    android:layout_height="wrap_content">
+
+                    <!-- Chat bubble -->
+                    <TextView
+                        android:id="@+id/aiChatBox"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:background="@drawable/bg_ai_chat"
+                        android:textColor="@android:color/black"
+                        android:textSize="16sp"
+                        android:paddingStart="32dp"
+                        android:paddingTop="5dp"
+                        android:paddingEnd="8dp"
+                        android:paddingBottom="5dp" />
+
+                    <!-- Spinner overlaid inside the TextView area -->
+                    <ProgressBar
+                        android:id="@+id/spinner"
+                        android:layout_width="24dp"
+                        android:layout_height="24dp"
+                        android:layout_gravity="center"
+                        android:visibility="gone" />
+                </FrameLayout>
+
 
                 <!-- AI Icon (visible now) -->
                 <ImageView
@@ -49,6 +65,8 @@
                     android:src="@drawable/ic_ai_icon"
                     android:layout_margin="4dp"
                     android:visibility="gone"/>
+
+
             </FrameLayout>
 
         </LinearLayout>
